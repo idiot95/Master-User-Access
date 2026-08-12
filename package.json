@@ -1,0 +1,28 @@
+{
+  "name": "user-access",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Central rights for the Daeratul Aqeeq module fleet — who may open what, and what they may do there.",
+  "scripts": {
+    "dev": "next dev -p 3300",
+    "build": "next build",
+    "start": "next start -p 3300",
+    "lint": "next lint",
+    "test": "node --test test/",
+    "link:ds": "node scripts/link-design-system.mjs",
+    "tables": "node scripts/create-tables.mjs"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "jose": "^6.0.11",
+    "next": "^16.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "server-only": "^0.0.1"
+  },
+  "optionalDependencies": {
+    "@al-rayhaanat/system": "^1.3.0"
+  }
+}

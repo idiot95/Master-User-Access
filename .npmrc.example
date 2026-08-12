@@ -1,0 +1,4 @@
+# Copy to .npmrc. The design system is published to GitHub Packages, not npm.
+# The token needs only read:packages. Never commit .npmrc.
+@al-rayhaanat:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
