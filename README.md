@@ -50,7 +50,7 @@ else without disturbing who can open what.
 | | Base | Token | May |
 |---|---|---|---|
 | Access config | `MOD-User Access` | `TEABLE_TOKEN` | read + write records |
-| People, roles, assignments | `DA` | `TEABLE_OFFICE_TOKEN` | **read only** |
+| People, roles, assignments | `_DA Master` | `TEABLE_OFFICE_TOKEN` | **read only** |
 
 A Teable token carries scopes **and an explicit base list**, and the scopes
 apply across every base on that list — so one token able to write access rows
@@ -68,10 +68,11 @@ is a loss:
   that only works for the 125 people in the register is the wrong thing to
   depend on when most members will never be in it.
 
-## Local or cloud is one line
+## Local or cloud, per base
 
-Local and cloud Teable expose the same REST API, so the move is `TEABLE_URL` and
-nothing else. Which instance you are pointed at is shown permanently in the top
+The two bases need not be on the same Teable: `TEABLE_ACCESS_URL` and
+`TEABLE_OFFICE_URL` are set independently, which is what a migration looks like
+in practice. Both fall back to `TEABLE_URL` for the single-instance case. Which instance you are pointed at is shown permanently in the top
 bar — granting rights against cloud while believing you are on local is the one
 mistake worth spending fixed chrome to prevent.
 
@@ -167,7 +168,7 @@ Set the URL back before anyone else uses the console.
 ## Testing
 
 ```sh
-npm test          # 35 cases, no network, no base
+npm test          # 47 cases, no network, no base
 ```
 
 The one that matters most resolves an ITS ID present in no table and asserts a
