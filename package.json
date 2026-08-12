@@ -10,10 +10,11 @@
     "start": "next start -p 3300",
     "lint": "next lint",
     "test": "node --test test/",
-    "link:ds": "node scripts/link-design-system.mjs",
-    "tables": "node scripts/create-tables.mjs"
+    "tables": "node scripts/create-tables.mjs",
+    "vendor:ds": "node scripts/vendor-design-system.mjs"
   },
   "dependencies": {
+    "@al-rayhaanat/system": "file:vendor/@al-rayhaanat/system",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "jose": "^6.0.11",
@@ -21,8 +22,5 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "server-only": "^0.0.1"
-  },
-  "optionalDependencies": {
-    "@al-rayhaanat/system": "^1.3.0"
   }
 }

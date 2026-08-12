@@ -23,33 +23,42 @@ they are missing.
 | `TEABLE_OFFICE_URL` | `https://app.teable.io` | |
 | `TEABLE_OFFICE_BASE` | `bseHKVLPadS6wPhefR8` | _DA Master |
 | `TEABLE_OFFICE_TOKEN` | a **read-only** token on that base | never `record|create` or `record|update` |
-| `NPM_TOKEN` | GitHub PAT with `read:packages` | see §2 |
 
-**Do not set `ARH_LOCAL` or `ALLOW_ITS_OVERRIDE`.** The first breaks module
-resolution on a deployment; the second turns identity into a query parameter.
-`ALLOW_ITS_OVERRIDE` is guarded twice — it also requires `NODE_ENV` to not be
-production — but it has no business being there.
+That is the whole list. **Do not set `ALLOW_ITS_OVERRIDE`** — it turns identity
+into a query parameter. It is guarded twice, also requiring `NODE_ENV` to not be
+production, but it has no business on a deployment.
 
-## 2. The design system will not install without a PAT
+A single token covering both bases also works: `TEABLE_OFFICE_TOKEN` falls back
+to `TEABLE_TOKEN` when unset. The cost is that the app could then write to the
+office register, which nothing in it does — the split is what makes that true at
+the credential rather than only in the code.
 
-`@al-rayhaanat/*` is published to **GitHub Packages**, not npm. Locally it is
-symlinked from a sibling checkout by `npm run link:ds`; on Vercel that checkout
-does not exist, so the install fails on the first `import`.
+## 2. The design system is vendored — no token needed
 
-Add an `.npmrc` at the repo root (it is gitignored, so create it in Vercel or
-commit a variant that reads the env var):
+`@al-rayhaanat/*` lives in `vendor/@al-rayhaanat`, referenced by `file:` paths,
+so `npm install` resolves it from a clean clone with no registry and no PAT.
 
+This is not the arrangement the design system's own README describes. That one
+assumes the packages are published to GitHub Packages — but the Changesets
+release workflow has never run (there are no tags), so `npm i
+@al-rayhaanat/system` 404s with or without a token. Vendoring is what actually
+builds today.
+
+The cost is a fork: a fix committed to `rayhanat-design-system` does not reach
+this app on its own. Pull it in deliberately:
+
+```sh
+npm run vendor:ds        # re-copy from ../rayhanat-design-system
+npm install
 ```
-@al-rayhaanat:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NPM_TOKEN}
-```
 
-and set `NPM_TOKEN` to a PAT with `read:packages`.
+The script rewrites each package's pnpm-only `workspace:*` ranges to relative
+`file:` paths, which is the only edit it makes — so re-running it carries
+upstream changes straight through.
 
-Then move `@al-rayhaanat/system` from `optionalDependencies` to `dependencies`
-in `package.json`. It sits in `optional` precisely so local installs succeed
-without the PAT — but on a deployment an optional dependency that fails to
-install fails silently, and the app builds with no design system at all.
+If the packages are ever actually published, switching back is two lines: an
+`.npmrc` pointing at `npm.pkg.github.com` with a `read:packages` PAT, and a
+version range instead of the `file:` path.
 
 ## 3. Both bases are on live
 

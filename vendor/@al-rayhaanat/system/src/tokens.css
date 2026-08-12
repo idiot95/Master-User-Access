@@ -1,0 +1,55 @@
+/* @al-rayhaanat/system/tokens.css — the whole token layer, one import.
+   Kept as a file rather than an exports alias because a package exports target
+   must be a relative path; a bare specifier raises ERR_INVALID_PACKAGE_TARGET.
+   The import below uses the tokens package's PUBLIC subpath — deep paths such as
+   ./dist/tokens.css are not in its exports map and bundlers refuse them. */
+@import "@al-rayhaanat/tokens/tokens.css";
+
+/* The box model the system is written against.
+
+   Components set a size and then add their own padding: a field is inlineSize
+   100% plus var(--space-4) either side, a Slide is aspect-ratio 16/9 plus 8cqw
+   of gutter. Under the browser default — content-box — the padding is added
+   OUTSIDE the declared size, so the field lands 26px past its column and the
+   slide renders at 2.26:1 instead of 16:9. Both were live bugs.
+
+   That this belongs here is visible in /ui: `Center` opts back into content-box
+   explicitly, which is only meaningful if border-box is the ambient rule.
+
+   It lives in this file rather than tokens.css because that one is generated
+   from brand.json and carries a DO NOT EDIT BY HAND banner. Anything opting out
+   does so deliberately and locally, as Center does. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* The document ground.
+
+   Components paint their own surfaces, but nothing paints the page — so any
+   area a shell does not cover falls through to the browser's white, including
+   the overscroll band above and below. That reads as a background which stops
+   partway down, and is loudest in dark mode where the mismatch is total.
+
+   `--canvas` flips with data-theme, so this follows the theme rather than
+   pinning a colour.
+
+   The height is a floor, never a fixed size, and there is deliberately no
+   `overflow` rule here: each shell decides whether the document scrolls.
+   AppShell and MobileShell bound themselves to the viewport and scroll inside
+   `main`; MarketingShell and FocusShell let the document scroll. Setting
+   overflow at this level would break the second pair to serve the first.
+
+   Lives in this file rather than tokens.css for the same reason as the box
+   model above: that one is generated and says DO NOT EDIT BY HAND. */
+html,
+body {
+  min-block-size: 100%;
+  background: var(--canvas);
+  color: var(--text-primary);
+}
+
+body {
+  margin: 0;
+}

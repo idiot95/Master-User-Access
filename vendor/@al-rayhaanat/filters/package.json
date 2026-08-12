@@ -1,0 +1,49 @@
+{
+  "name": "@al-rayhaanat/filters",
+  "version": "1.3.0",
+  "description": "Declared and dynamic filters, with the URL as state.",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "source": "./src/index.jsx",
+      "default": "./src/index.jsx"
+    }
+  },
+  "dependencies": {
+    "@al-rayhaanat/tokens": "file:../tokens",
+    "@al-rayhaanat/icons": "file:../icons",
+    "@al-rayhaanat/ui": "file:../ui",
+    "@al-rayhaanat/table": "file:../table"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "react-hook-form": ">=7"
+  },
+  "peerDependenciesMeta": {
+    "react-hook-form": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "arh": {
+    "distribution": "source-jsx",
+    "requiresTranspile": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idiot95/rayhanat-design-system.git",
+    "directory": "packages/filters"
+  },
+  "homepage": "https://github.com/idiot95/rayhanat-design-system#readme"
+}

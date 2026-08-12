@@ -9,9 +9,9 @@ shape as `office-console`, deliberately.
 
 ```sh
 npm install
-npm run link:ds                    # only while the GitHub PAT is outstanding
+npm run vendor:ds     # only after pulling design-system changes
 cp .env.example .env.local && $EDITOR .env.local
-ARH_LOCAL=1 npm run dev            # http://localhost:3300
+npm run dev                        # http://localhost:3300
 ```
 
 ## What it owns, and what it does not

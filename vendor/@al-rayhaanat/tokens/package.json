@@ -1,0 +1,38 @@
+{
+  "name": "@al-rayhaanat/tokens",
+  "version": "1.3.0",
+  "description": "Design tokens — the DTCG source and every generated target.",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/tokens.ts",
+      "default": "./dist/tokens.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./tailwind": "./dist/tailwind.preset.cjs",
+    "./figma": "./dist/figma.variables.json",
+    "./brand.json": "./brand.json",
+    "./fonts/*": "./fonts/*"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "types": "./dist/tokens.ts",
+  "files": [
+    "dist",
+    "fonts",
+    "brand.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idiot95/rayhanat-design-system.git",
+    "directory": "packages/tokens"
+  },
+  "homepage": "https://github.com/idiot95/rayhanat-design-system#readme"
+}

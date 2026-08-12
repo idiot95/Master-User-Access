@@ -1,0 +1,44 @@
+{
+  "name": "@al-rayhaanat/slides",
+  "version": "1.3.0",
+  "description": "Deck layouts, the pptxgenjs helper and the .potx spec.",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.jsx",
+    "./pptx.theme": "./dist/pptx.theme.js"
+  },
+  "dependencies": {
+    "@al-rayhaanat/tokens": "file:../tokens",
+    "@al-rayhaanat/icons": "file:../icons",
+    "@al-rayhaanat/ui": "file:../ui",
+    "@al-rayhaanat/charts": "file:../charts"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "pptxgenjs": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "pptxgenjs": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "src",
+    "dist",
+    "POTX.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idiot95/rayhanat-design-system.git",
+    "directory": "packages/slides"
+  },
+  "homepage": "https://github.com/idiot95/rayhanat-design-system#readme"
+}

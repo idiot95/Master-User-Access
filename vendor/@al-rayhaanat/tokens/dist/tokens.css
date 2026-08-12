@@ -1,0 +1,411 @@
+/* GENERATED FROM tokens/brand.json BY STYLE DICTIONARY — DO NOT EDIT BY HAND. */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;500;600&family=IBM+Plex+Mono:wght@400&family=Noto+Naskh+Arabic:wght@400;700&display=swap');
+
+/* Kanz al-Lulu Regular — self-hosted, scoped to the Arabic ranges so mixed
+   text picks the right face per character with no wrapper component.
+   TTF today; subset to .woff2 in CI (~500KB → ~90KB) and preload it. */
+@font-face {
+  font-family: "Kanz al-Lulu";
+  src: url("../fonts/KanzalLulu-Regular.ttf") format("truetype");
+  font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200F, U+061F, U+060C, U+061B;
+}
+
+:root {
+  --color-sand-50: #fdfaf5;
+  --color-sand-100: #f9f3e9;
+  --color-sand-200: #f5ecdf;
+  --color-sand-300: #e9dcc7;
+  --color-sand-400: #d6c4a8;
+  --color-sand-500: #bda98a;
+  --color-sand-600: #9c8a6d;
+  --color-sand-700: #7a6b53;
+  --color-sand-800: #55493a;
+  --color-sand-900: #332c23;
+  --color-sand-950: #1e1a15;
+  --color-slate-50: #f8f8f7;
+  --color-slate-100: #f1f1f0;
+  --color-slate-200: #e4e5e4;
+  --color-slate-300: #d0d2d1;
+  --color-slate-400: #a9acab;
+  --color-slate-500: #808584;
+  --color-slate-600: #626867;
+  --color-slate-700: #4a504f;
+  --color-slate-800: #33383a;
+  --color-slate-900: #1f2325;
+  --color-slate-950: #131618;
+  --color-crimson-50: #fff1f4;
+  --color-crimson-100: #ffe0e7;
+  --color-crimson-200: #fcc3d0;
+  --color-crimson-300: #f79baf;
+  --color-crimson-400: #f06a88;
+  --color-crimson-500: #e7234f;
+  --color-crimson-600: #c81643;
+  --color-crimson-700: #a50f36;
+  --color-crimson-800: #7c0b29;
+  --color-crimson-900: #56091d;
+  --color-crimson-950: #38060f;
+  --color-rose-50: #fdf4f3;
+  --color-rose-100: #fae8e7;
+  --color-rose-200: #f4d2d2;
+  --color-rose-300: #edb8b9;
+  --color-rose-400: #e39b9d;
+  --color-rose-500: #dd8a8d;
+  --color-rose-600: #c26e72;
+  --color-rose-700: #9e565a;
+  --color-rose-800: #763f42;
+  --color-rose-900: #4f2b2d;
+  --color-rose-950: #331b1d;
+  --color-green-50: #eef7f2;
+  --color-green-100: #d6ede1;
+  --color-green-300: #8fccb0;
+  --color-green-500: #1f7a5c;
+  --color-green-600: #16694e;
+  --color-green-700: #0f543e;
+  --color-green-900: #08301f;
+  --color-amber-50: #fdf5e7;
+  --color-amber-100: #fae9c6;
+  --color-amber-300: #e9c266;
+  --color-amber-500: #8a5a00;
+  --color-amber-600: #734b00;
+  --color-amber-700: #5c3c00;
+  --color-amber-900: #332100;
+  --color-blue-50: #eef3fb;
+  --color-blue-100: #d8e3f6;
+  --color-blue-300: #93b4e4;
+  --color-blue-500: #2c5fa8;
+  --color-blue-600: #24508f;
+  --color-blue-700: #1c3f72;
+  --color-blue-900: #0f2340;
+  --color-clay-50: #fdf1ee;
+  --color-clay-100: #faddd6;
+  --color-clay-300: #efa894;
+  --color-clay-500: #b53318;
+  --color-clay-600: #992a13;
+  --color-clay-700: #7b210e;
+  --color-clay-900: #451207;
+  --color-motif-outer: #f5ecdf;
+  --color-motif-outer-on-light: #e2c9b8;
+  --color-motif-inner: #dd8a8d;
+  --color-motif-core: #e7234f;
+
+
+
+  --palette-bindery-ground: #fdfaf5;
+  --palette-bindery-surface: #ffffff;
+  --palette-bindery-ink: #1e1a15;
+  --palette-bindery-accent: #c81643;
+  --palette-bindery-support: #d6c4a8;
+  --palette-endpaper-ground: #f5ecdf;
+  --palette-endpaper-surface: #f9f3e9;
+  --palette-endpaper-ink: #1e1a15;
+  --palette-endpaper-accent: #a50f36;
+  --palette-endpaper-support: #d6c4a8;
+  --palette-petal-ground: #f9f3e9;
+  --palette-petal-surface: #fae8e7;
+  --palette-petal-ink: #332c23;
+  --palette-petal-accent: #e7234f;
+  --palette-petal-support: #edb8b9;
+  --palette-rose-leaf-ground: #fdf4f3;
+  --palette-rose-leaf-surface: #f4d2d2;
+  --palette-rose-leaf-ink: #4f2b2d;
+  --palette-rose-leaf-accent: #a50f36;
+  --palette-rose-leaf-support: #e39b9d;
+  --palette-core-ground: #fff1f4;
+  --palette-core-surface: #ffe0e7;
+  --palette-core-ink: #56091d;
+  --palette-core-accent: #c81643;
+  --palette-core-support: #edb8b9;
+  --palette-colophon-ground: #14110e;
+  --palette-colophon-surface: #2b251f;
+  --palette-colophon-ink: #f9f3e9;
+  --palette-colophon-accent: #f79baf;
+  --palette-colophon-support: #e39b9d;
+  --palette-proof-ground: #ffffff;
+  --palette-proof-surface: #f9f3e9;
+  --palette-proof-ink: #1e1a15;
+  --palette-proof-accent: #a50f36;
+  --palette-proof-support: #e9dcc7;
+
+  --space-0: 0px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 24px;
+  --space-8: 32px;
+  --space-9: 40px;
+  --space-10: 48px;
+  --space-12: 64px;
+  --space-14: 80px;
+  --space-16: 96px;
+  --space-px: 1px;
+  --radius-none: 0px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --border-hairline: 1px;  --border-thick: 2px;  --border-focus: 2px;
+
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: Lora, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-arabic: "Kanz al-Lulu", "Noto Naskh Arabic", serif;
+  --weight-regular: 400;  --weight-medium: 500;  --weight-semibold: 600;
+  --text-3xs: 11px;  --leading-3xs: 1.45;
+  --text-ar-3xs: 11.66px;  --leading-ar-3xs: 1.67;
+  --text-2xs: 12px;  --leading-2xs: 1.45;
+  --text-ar-2xs: 12.72px;  --leading-ar-2xs: 1.67;
+  --text-xs: 13px;  --leading-xs: 1.5;
+  --text-ar-xs: 13.78px;  --leading-ar-xs: 1.73;
+  --text-sm: 14px;  --leading-sm: 1.5;
+  --text-ar-sm: 14.84px;  --leading-ar-sm: 1.73;
+  --text-base: 15px;  --leading-base: 1.6;
+  --text-ar-base: 15.9px;  --leading-ar-base: 1.84;
+  --text-md: 16px;  --leading-md: 1.6;
+  --text-ar-md: 16.96px;  --leading-ar-md: 1.84;
+  --text-lg: 18px;  --leading-lg: 1.5;
+  --text-ar-lg: 19.08px;  --leading-ar-lg: 1.73;
+  --text-xl: 21px;  --leading-xl: 1.4;
+  --text-ar-xl: 22.26px;  --leading-ar-xl: 1.61;
+  --text-2xl: 25px;  --leading-2xl: 1.3;
+  --text-ar-2xl: 26.5px;  --leading-ar-2xl: 1.5;
+  --text-3xl: 31px;  --leading-3xl: 1.22;
+  --text-ar-3xl: 32.86px;  --leading-ar-3xl: 1.45;
+  --text-4xl: 39px;  --leading-4xl: 1.16;
+  --text-ar-4xl: 41.34px;  --leading-ar-4xl: 1.45;
+  --text-5xl: 49px;  --leading-5xl: 1.1;
+  --text-ar-5xl: 51.94px;  --leading-ar-5xl: 1.45;
+  --text-6xl: 61px;  --leading-6xl: 1.05;
+  --text-ar-6xl: 64.66px;  --leading-ar-6xl: 1.45;
+  --leading-ar-floor: 1.45;
+  --tracking-tight: -0.015em;  --tracking-normal: 0;  --tracking-wide: 0.04em;  --tracking-kicker: 0.12em;
+
+  --duration-instant: 0ms;
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  --duration-deliberate: 480ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-popover: 1400;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+}
+
+:root, [data-theme="light"] {
+  --canvas: #fdfaf5;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f5ecdf;
+  --surface-inverse: #1e1a15;
+  --border: #e9dcc7;
+  --border-strong: #d6c4a8;
+  --border-control: #7a6b53;
+  --border-interactive: #e7234f;
+  --text-primary: #1e1a15;
+  --text-secondary: #55493a;
+  --text-muted: #6f6047;
+  --text-inverse: #fdfaf5;
+  --text-on-interactive: #ffffff;
+  --interactive: #a50f36;
+  --interactive-solid: #c81643;
+  --interactive-solid-hover: #a50f36;
+  --interactive-hover: #a50f36;
+  --interactive-active: #7c0b29;
+  --interactive-subtle: #fff1f4;
+  --interactive-subtle-hover: #ffe0e7;
+  --secondary: #9e565a;
+  --secondary-subtle: #fae8e7;
+  --success: #16694e;
+  --success-subtle: #eef7f2;
+  --warning: #8a5a00;
+  --warning-subtle: #fdf5e7;
+  --danger: #b53318;
+  --danger-subtle: #fdf1ee;
+  --danger-hover: #992a13;
+  --info: #24508f;
+  --info-subtle: #eef3fb;
+  --focus-ring: #e7234f;
+  --shadow-sm: 0 1px 2px rgba(51,44,35,0.08);
+  --shadow-md: 0 2px 6px rgba(51,44,35,0.10), 0 1px 2px rgba(51,44,35,0.05);
+  --shadow-lg: 0 8px 24px rgba(51,44,35,0.12), 0 2px 6px rgba(51,44,35,0.06);
+  --shadow-xl: 0 20px 48px rgba(51,44,35,0.16);
+}
+
+[data-theme="dark"] {
+  --canvas: #14110e;
+  --surface: #1f1b16;
+  --surface-raised: #2b251f;
+  --surface-sunken: #0f0c0a;
+  --surface-inverse: #fdfaf5;
+  --border: #3b332b;
+  --border-strong: #4d4338;
+  --border-control: #9c8a6d;
+  --border-interactive: #f06a88;
+  --text-primary: #f7f2e9;
+  --text-secondary: #ddd3c2;
+  --text-muted: #b3a793;
+  --text-inverse: #1e1a15;
+  --text-on-interactive: #ffffff;
+  --interactive: #f79baf;
+  --interactive-solid: #c81643;
+  --interactive-solid-hover: #e7234f;
+  --interactive-hover: #fcc3d0;
+  --interactive-active: #f06a88;
+  --interactive-subtle: #2a1017;
+  --interactive-subtle-hover: #3a161f;
+  --secondary: #edb8b9;
+  --secondary-subtle: #2b1c1d;
+  --success: #8fccb0;
+  --success-subtle: #0d221a;
+  --warning: #e9c266;
+  --warning-subtle: #241a06;
+  --danger: #efa894;
+  --danger-subtle: #2a120c;
+  --danger-hover: #f5bfae;
+  --info: #93b4e4;
+  --info-subtle: #101c2e;
+  --focus-ring: #f06a88;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.55);
+  --shadow-lg: 0 10px 28px rgba(0,0,0,0.6);
+  --shadow-xl: 0 24px 56px rgba(0,0,0,0.68);
+}
+
+/* Directional icons flip by direction, not by duplicated SVGs. */
+[dir="ltr"] { --icon-flip: 1; }
+[dir="rtl"] { --icon-flip: -1; }
+
+@keyframes arh-spin { to { transform: rotate(360deg); } }
+@keyframes arh-bloom { 0%,100% { transform: scale(0.86); opacity: 0.55 } 50% { transform: scale(1); opacity: 1 } }
+@keyframes arh-shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+
+/* Arabic blocks take the Arabic face and its corrected leading. Content is set
+   WITHOUT harakat, so the floor is headroom for Kanz's deep descenders rather
+   than mark clearance — if vocalised text is ever introduced, raise it to 1.70. */
+[lang="ar"], [dir="rtl"] { font-family: var(--font-arabic); line-height: var(--leading-ar-floor); }
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; --duration-normal:0ms; --duration-slow:0ms; --duration-deliberate:0ms; } }
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS blocks — the layout primitives, as classes.
+   The React components in @al-rayhaanat/ui compile to exactly these rules; this
+   layer exists so a non-React surface (a printed statement, an email, a legacy
+   module, a Slidev deck) gets the same layouts. Every value is a token.
+   All of them are intrinsically responsive: nothing here needs a breakpoint,
+   because the tracks reflow on content, not on device width.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Vertical rhythm. Set --gap per instance. */
+.arh-stack { display: grid; gap: var(--gap, var(--space-5)); }
+.arh-stack > * { margin-block: 0; }
+
+/* Horizontal group that wraps: buttons, chips, meta rows. */
+.arh-cluster { display: flex; flex-wrap: wrap; gap: var(--gap, var(--space-3));
+  align-items: var(--align, center); }
+
+/* Columns that reflow on their own — no media query, no device width. */
+.arh-grid { display: grid; gap: var(--gap, var(--space-5));
+  grid-template-columns: repeat(auto-fit, minmax(var(--min, 240px), 1fr)); }
+
+/* Two panes that become one column when they cannot hold their minimum. */
+.arh-split { display: grid; gap: var(--gap, var(--space-6));
+  grid-template-columns: repeat(auto-fit, minmax(var(--min, 320px), 1fr)); }
+
+/* Content + rail. The rail keeps its width; the pair stacks when the content
+   would fall below --content-min. */
+.arh-sidebar { display: flex; flex-wrap: wrap; gap: var(--gap, var(--space-6)); }
+.arh-sidebar > :first-child { flex-basis: var(--rail, 240px); flex-grow: 1; }
+.arh-sidebar > :last-child { flex-basis: 0; flex-grow: 999;
+  min-inline-size: var(--content-min, 55%); }
+
+/* Centred measure; prose caps at 78ch. */
+.arh-center { box-sizing: content-box; margin-inline: auto;
+  max-inline-size: var(--measure, var(--bp-xl)); padding-inline: var(--space-6); }
+.arh-prose { max-inline-size: 78ch; }
+.arh-prose > * + * { margin-block-start: var(--space-4); }
+
+/* Fixed ratio box that crops its content. */
+.arh-frame { aspect-ratio: var(--ratio, 16 / 9); overflow: hidden;
+  border-radius: var(--radius-md); display: grid; place-items: center; }
+.arh-frame > img, .arh-frame > video { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+/* Scroll region and sticky header. */
+.arh-scroll { overflow: auto; overscroll-behavior: contain;
+  max-block-size: var(--max-block, 420px); }
+.arh-sticky { position: sticky; inset-block-start: 0; z-index: var(--z-sticky);
+  background: var(--surface); }
+
+/* Surfaces. */
+.arh-card { background: var(--surface); border: var(--border-hairline) solid var(--border);
+  border-radius: var(--radius-lg); padding: var(--space-5); }
+.arh-card-raised { background: var(--surface-raised); box-shadow: var(--shadow-md); }
+.arh-card-sunken { background: var(--surface-sunken); border-color: transparent; }
+.arh-inset { background: var(--surface-sunken); border-radius: var(--radius-md);
+  padding: var(--space-5); }
+.arh-soft { background: var(--surface-raised); border: 0; box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-full); }
+
+/* Shapes and rules. */
+.arh-pill { border-radius: var(--radius-full); }
+.arh-hairline { block-size: 1px; background: var(--border); border: 0; }
+.arh-rule-accent { block-size: var(--border-thick); inline-size: 3rem;
+  background: var(--interactive-solid); border: 0; }
+
+/* Text utilities that would otherwise be retyped in every product. */
+.arh-kicker { font-family: var(--font-display); font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-kicker); text-transform: uppercase;
+  color: var(--interactive); }
+.arh-tnum { font-feature-settings: "tnum"; }
+.arh-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arh-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; }
+.arh-visually-hidden { position: absolute; inline-size: 1px; block-size: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── Mobile ────────────────────────────────────────────────────────────────
+   The blocks above need no breakpoints. These are the exceptions: a rail that
+   must fold away, a grid that must become one column, touch targets that must
+   grow, and gutters that must tighten.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .arh-rail { display: none; }
+  .arh-one-col { grid-template-columns: minmax(0, 1fr) !important; }
+  .arh-touch button, .arh-touch a { min-block-size: 44px; }
+  .arh-center { padding-inline: var(--space-4); }
+  .arh-card { padding: var(--space-4); }
+}
+@media (max-width: 1023px) { .arh-hide-md { display: none; } }
+@media print {
+  .arh-no-print { display: none !important; }
+  .arh-card { break-inside: avoid; box-shadow: none; }
+}
+
+/* ── Wrapping ──────────────────────────────────────────────────────────────
+   Text wraps by rule, not by hand-inserted breaks. Headings balance, body
+   copy wraps pretty (no orphan last word), figures and identifiers never
+   break, and Arabic never hyphenates.
+   ───────────────────────────────────────────────────────────────────────── */
+.arh-balance { text-wrap: balance; }        /* headings up to ~6 words */
+.arh-pretty  { text-wrap: pretty; }         /* body copy — kills orphans */
+.arh-nowrap  { white-space: nowrap; }       /* IDs, figures, dates, kbd */
+.arh-break   { overflow-wrap: anywhere; word-break: break-word; } /* URLs, tokens */
+.arh-hyphens { hyphens: auto; }
+[lang="ar"] .arh-hyphens, [dir="rtl"] .arh-hyphens { hyphens: manual; }
+h1, h2, h3 { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }

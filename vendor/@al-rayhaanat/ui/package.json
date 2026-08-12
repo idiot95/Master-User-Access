@@ -1,0 +1,41 @@
+{
+  "name": "@al-rayhaanat/ui",
+  "version": "1.3.0",
+  "description": "Primitives and layout.",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "source": "./src/index.jsx",
+      "default": "./src/index.jsx"
+    }
+  },
+  "dependencies": {
+    "@al-rayhaanat/tokens": "file:../tokens",
+    "@al-rayhaanat/icons": "file:../icons"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "arh": {
+    "distribution": "source-jsx",
+    "requiresTranspile": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/idiot95/rayhanat-design-system.git",
+    "directory": "packages/ui"
+  },
+  "homepage": "https://github.com/idiot95/rayhanat-design-system#readme"
+}

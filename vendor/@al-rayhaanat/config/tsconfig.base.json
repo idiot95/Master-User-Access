@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "@al-rayhaanat/config — base",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "preserve",
+    "allowJs": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "incremental": true,
+    "paths": {
+      "@al-rayhaanat/tokens": ["./packages/tokens/dist/tokens.ts"],
+      "@al-rayhaanat/icons": ["./packages/icons/src/index.jsx"],
+      "@al-rayhaanat/ui": ["./packages/ui/src/index.jsx"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next"]
+}
