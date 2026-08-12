@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { AppShell, SideNav, TopBar, Badge, Callout, Button, CommandPalette } from "@al-rayhaanat/system";
+import {
+  AppShell, SideNav, TopBar, Badge, Callout, Button, CommandPalette, Stack,
+} from "@al-rayhaanat/system";
 
 const ITEMS = [
   { label: "Overview", href: "/", icon: "grid" },
@@ -81,13 +83,28 @@ export function Chrome({ target, children }) {
         />
       }
     >
-      {!target.configured && (
-        <Callout tone="danger" variant="card" title="No Teable token">
-          Copy <code>.env.example</code> to <code>.env.local</code> and set
-          {" "}<code>TEABLE_TOKEN</code>. Nothing can load until it is set.
+      {target.configured ? children : (
+        <Callout tone="danger" variant="card"
+          title={`${target.missing.length} environment ${target.missing.length === 1 ? "variable is" : "variables are"} not set`}>
+          <Stack gap="3">
+            <span>
+              Nothing can load until {target.missing.length === 1 ? "it is" : "they are"} set.
+              {" "}On Vercel these go in <strong>Project Settings → Environment Variables</strong>,
+              and a redeploy is needed afterwards — new variables do not reach an existing build.
+            </span>
+            <code style={{ display: "block", whiteSpace: "pre", fontSize: "var(--text-xs)",
+              padding: "var(--space-4)", borderRadius: "var(--radius-md)",
+              background: "var(--surface-sunken)", overflowX: "auto" }}>
+              {target.missing.map((k) => `${k}=`).join("\n")}
+            </code>
+            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+              <code>TEABLE_OFFICE_TOKEN</code> is optional — it falls back to
+              {" "}<code>TEABLE_TOKEN</code> when unset, which only works if that token
+              covers both bases. See DEPLOY.md.
+            </span>
+          </Stack>
         </Callout>
       )}
-      {children}
       <CommandPalette open={open} onClose={() => setOpen(false)} commands={commands}
         placeholder="Search modules, roles, members…" />
     </AppShell>
