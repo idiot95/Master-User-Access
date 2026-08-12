@@ -21,9 +21,15 @@ const ITEMS = [
  * the same reason office-console does it: granting rights against cloud while
  * believing you are on local is worth fixed chrome to prevent.
  */
-export function Chrome({ target, children }) {
+export function Chrome({ target, session, children }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // The login page brings its own frame. Wrapping it in the console shell would
+  // show the navigation to someone who has not signed in yet — every link a
+  // redirect back to where they already are.
+  if (pathname === "/login") return children;
+
   const current = (ITEMS.find((i) =>
     i.href === "/" ? pathname === "/" : pathname.startsWith(i.href)) || ITEMS[0]).label;
 
@@ -78,6 +84,14 @@ export function Chrome({ target, children }) {
                      icon={target.isLocal ? "lock" : "external-link"}>
                 {target.label} · {target.detail}
               </Badge>
+              {session && (
+                <form action="/api/auth/logout" method="post" style={{ display: "contents" }}>
+                  <Button type="submit" variant="ghost" size="sm" icon="log-out"
+                    title={`Signed in as ITS ${session.itsId}`}>
+                    {session.name || session.itsId}
+                  </Button>
+                </form>
+              )}
             </>
           }
         />
