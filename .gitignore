@@ -6,3 +6,4 @@ out/
 .npmrc
 *.log
 .vercel/
+.DS_Store
