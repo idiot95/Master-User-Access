@@ -20,8 +20,8 @@ they are missing.
 | `TEABLE_ACCESS_URL` | `https://app.teable.io` | |
 | `TEABLE_ACCESS_BASE` | `bseH8n0A8lqdJMistsz` | MOD-User Access |
 | `TEABLE_TOKEN` | a token scoped to **that base only** | read + `record|create` + `record|update` |
-| `TEABLE_OFFICE_URL` | `https://app.teable.io` | ⚠️ see §3 |
-| `TEABLE_OFFICE_BASE` | the live `DA` base id | |
+| `TEABLE_OFFICE_URL` | `https://app.teable.io` | |
+| `TEABLE_OFFICE_BASE` | `bseHKVLPadS6wPhefR8` | _DA Master |
 | `TEABLE_OFFICE_TOKEN` | a **read-only** token on that base | never `record|create` or `record|update` |
 | `NPM_TOKEN` | GitHub PAT with `read:packages` | see §2 |
 
@@ -51,21 +51,17 @@ in `package.json`. It sits in `optional` precisely so local installs succeed
 without the PAT — but on a deployment an optional dependency that fails to
 install fails silently, and the app builds with no design system at all.
 
-## 3. The office base must be on live before this can work
+## 3. Both bases are on live
 
-`TEABLE_OFFICE_URL` currently points at `http://127.0.0.1:3100` in local
-development. **Vercel cannot reach that.** More importantly, the live `DA` base
-does not yet contain `Roles` or `Role Assignments` — they exist only locally.
+`_DA Master` (`bseHKVLPadS6wPhefR8`) holds `Roles`, `Role Assignments` and
+`DA Office Attendees`, so the Org Role membership path resolves fully against
+live. Nothing has to be pushed before deploying.
 
-Until those two tables are on live:
-
-- the **Org Role** membership path resolves to nothing
-- every role that follows an org role grants nothing to anybody
-- explicit members and `Everyone` still work
-
-So a deployment made today would run, and would be quietly wrong for most
-people. Push those two tables first. They are additive — live has neither, so
-nothing there can be overwritten.
+One thing to know rather than fix: **`Role Assignments` is 231 on live and 314
+locally.** Roles and the attendee register match exactly. Access resolves
+correctly either way — but a person whose only current assignment is among those
+83 will hold no org-role-derived access when the app reads live. Reconcile it
+when convenient; it is not a deployment blocker.
 
 ## 4. Domain
 
