@@ -7,3 +7,7 @@ out/
 *.log
 .vercel/
 .DS_Store
+
+# `vercel link` appends `.env*` here, which would also swallow .env.example —
+# and that file is the documentation of what a deployment needs.
+!.env.example

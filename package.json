@@ -11,6 +11,7 @@
     "lint": "next lint",
     "test": "node --test test/",
     "tables": "node scripts/create-tables.mjs",
+    "keys": "node scripts/generate-keys.mjs",
     "vendor:ds": "node scripts/vendor-design-system.mjs"
   },
   "dependencies": {

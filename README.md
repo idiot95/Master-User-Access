@@ -113,8 +113,15 @@ Three things, and none of them is its data.
 2. **Scope endpoints**, only for dimensions it owns: `/.well-known/access-scopes/{key}`
    returning ids and labels, never row content. Authenticated — labels can be
    people's names.
-3. **The gate** — verify the signed envelope in `middleware.ts`, and re-check
-   server-side on every write. The client gate is UX; the server gate is security.
+3. **The gate** — `@al-rayhaanat/access` in `proxy.js`, and `requireAccess` on
+   every write. The client gate is UX; the server gate is security.
+
+   ```js
+   // proxy.js — middleware.js on Next 15
+   import { accessProxy, accessMatcher } from "@al-rayhaanat/access/proxy";
+   export default accessProxy({ module: "hoto" });
+   export const config = { matcher: accessMatcher };
+   ```
 
 A resource lists **only the verbs it has**. office-console has no delete path
 anywhere, so its manifest omits `delete` and no delete column is drawn for it.
@@ -134,9 +141,44 @@ base. A similarly-named field is not enough: hoto's `Jamiat` is free text, so a
 | `lib/resolve.js` | the decision logic — **pure**, no I/O, so precedence can be tested exhaustively |
 | `lib/access.js` | the reads, and the bridge from ITS ID to org roles |
 | `lib/manifest.js` | fetch, validate, hash and diff manifests |
+| `lib/auth.js` | who you are, for 12 hours. A stopgap until ITS One Login |
+| `lib/envelope.js` | what you may do, for 15 minutes. RS256, signed here and verified everywhere |
+| `lib/redirect.js` | where `/authorize` is willing to send you afterwards — **pure**, and the only place an attacker picks a URL |
+| `proxy.js` | no session, no console. Strips inbound `x-its-*` and sets it from the cookie |
+| `app/authorize/route.js` | the door modules send people to. The only place an envelope is minted |
 | `app/actions.js` | every write, as Server Actions, each followed by `revalidateTag` |
 | `app/*/page.jsx` | Server Components: fetch, then hand plain data to a client view |
 | `app/*/view.jsx` | client views; every al-Rayhaanat component is `"use client"` |
+
+## Two tokens, two clocks
+
+Identity and rights expire on different schedules, and folding them into one
+cookie is how a session outlives the permissions it was issued under.
+
+| | Cookie | Lives | Signed | Read by |
+|---|---|---|---|---|
+| Session | `ua_session` | 12 hours | HS256, `AUTH_SECRET` | this app only |
+| Envelope | `da_access` | **15 minutes** | RS256, `ACCESS_PRIVATE_KEY` | every module, locally |
+
+Fifteen minutes is the bound on how stale a module's view of someone's rights
+can be. Tick a box on the matrix and it lands across the fleet within that, with
+no deploy anywhere. Sign-in deliberately does not mint an envelope —
+`/authorize` is the single place that happens, which is why the redirect
+allow-list and the cookie-size check each exist once.
+
+RS256 rather than a shared secret: every module verifies with the public half
+from `/.well-known/jwks.json`, so a module whose environment leaks entirely
+still cannot mint an envelope for another module.
+
+```
+   module has no envelope  →  /authorize?redirect=…
+   no console session      →  /login, and back
+   session                 →  resolve, sign, set cookie on .daeratulaqeeq.org, 303 home
+```
+
+`@al-rayhaanat/access` is the module side of this — the proxy gate, the
+`requireAccess` check, and the scope filter. `docs/module-integration-prompt.md`
+is the brief to hand whoever is wiring one up.
 
 ## Precedence
 
@@ -168,12 +210,19 @@ Set the URL back before anyone else uses the console.
 ## Testing
 
 ```sh
-npm test          # 47 cases, no network, no base
+npm test          # 83 cases, no network, no base
 ```
 
 The one that matters most resolves an ITS ID present in no table and asserts a
 valid `recognised` envelope **and that no row was written**. That is the
 10,000/1,000 guarantee; it is a test rather than a habit.
+
+`test/contract.test.js` is the other one to know about. It runs the resolver,
+signs the result, and reads it back through the **vendored**
+`@al-rayhaanat/access` — the code a module actually imports. The two halves live
+in different repositories and can drift apart on a renamed short key, a changed
+cookie name or an issuer that stops matching. Each of those looks fine on its
+own side and locks the fleet out in production.
 
 ### Raw versus shaped reads
 
