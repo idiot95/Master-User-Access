@@ -99,7 +99,31 @@
           "description": "teable is valid ONLY when the module stores record ids from User Access's own base. A field with a similar name is not enough — hoto's Jamiat is free text, so its ids would never match, and it must be self."
         },
         "teableScope": { "enum": ["Jamiat", "Section", "Umoor", "Initiative Year"] },
-        "selfEndpoint": { "type": "string", "pattern": "^/\\.well-known/access-scopes/[a-z0-9_-]+$" }
+        "selfEndpoint": { "type": "string", "pattern": "^/\\.well-known/access-scopes/[a-z0-9_-]+$" },
+
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "What this dimension narrows, in the administrator's words. Shown beside the picker — the one place they are told what ticking a box will actually do."
+        },
+        "selection": {
+          "enum": ["single", "multiple"],
+          "description": "Whether a grant may name several values of this dimension. Absent means multiple."
+        },
+        "supportsAll": {
+          "type": "boolean",
+          "description": "Whether 'every value' is meaningful here, as against naming them one by one."
+        },
+        "groupBy": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$",
+          "description": "A field on this dimension's scope items to group the picker by, so a whole Hijri year can be ticked at once rather than forty miqaats individually."
+        },
+        "dependsOn": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,63}$",
+          "description": "Another declared dimension this one narrows within — sub miqaats belong to a miqaat, so the picker offers only the ones under what is already chosen."
+        }
       },
       "allOf": [
         {
