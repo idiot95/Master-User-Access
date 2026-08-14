@@ -14,6 +14,7 @@ const ITEMS = [
   { label: "Members", href: "/members", icon: "users", resource: "member" },
   { label: "Overrides", href: "/overrides", icon: "sliders", resource: "override" },
   { label: "Explain", href: "/explain", icon: "search", resource: "explain" },
+  { label: "Log", href: "/logs", icon: "list", resource: "log" },
 ];
 
 /**

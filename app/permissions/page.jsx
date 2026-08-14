@@ -2,7 +2,7 @@ import { getModules, getAccessRoles, getRolePermissions } from "../../lib/model.
 import { loadVocabularies } from "../../lib/vocab.js";
 import { PermissionsView } from "./view.jsx";
 
-import { consoleAccess, can } from "../../lib/console.js";
+import { consoleAccess, can, scopeModules } from "../../lib/console.js";
 import { NoAccess } from "../no-access.jsx";
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,16 @@ export default async function Page() {
     getModules(), getAccessRoles(), getRolePermissions(),
   ]);
 
-  const live = modules.filter((m) => m.status !== "Retired");
+  /**
+   * An owner sees only their own modules as columns.
+   *
+   * Narrowed here rather than in the view: the matrix is the screen where
+   * access is handed out, and shipping every other module's grants to the
+   * browser so a component can decline to draw them is not a boundary.
+   */
+  const allowed = scopeModules(access, "permission", "edit");
+  const live = modules.filter((m) => m.status !== "Retired")
+    .filter((m) => allowed === null || allowed.includes(m.key));
   const vocab = await loadVocabularies(live);
 
   // The matrix renders from the manifests, so a module whose manifest has never
@@ -40,11 +49,18 @@ export default async function Page() {
     })),
   }));
 
+  // The grants themselves, narrowed the same way. Filtering only the columns
+  // would leave every other module's grants sitting in the payload the browser
+  // receives — invisible on screen and entirely readable to whoever looks.
+  const mine = allowed === null
+    ? permissions
+    : permissions.filter((p) => allowed.includes(p.moduleKey));
+
   return (
     <PermissionsView
       modules={surfaces}
       roles={roles}
-      permissions={permissions}
+      permissions={mine}
     />
   );
 }

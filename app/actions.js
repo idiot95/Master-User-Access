@@ -8,6 +8,7 @@ import {
 import { fetchManifest } from "../lib/manifest.js";
 import { orphansAgainst, revivedAgainst } from "../lib/manifest.js";
 import { requireConsole } from "../lib/console.js";
+import { record } from "../lib/log.js";
 
 /**
  * Every write in the app.
@@ -34,16 +35,33 @@ const fail = (message) => ({ ok: false, message });
  * beside the control the person just used — a thrown error would replace the
  * whole screen with an error boundary and lose what they had typed.
  *
- * @returns the failure to return, or null to carry on.
+ * `moduleKey` is which module the write concerns, and it is what confines a
+ * module owner to their own. Omit it only where a write genuinely touches no
+ * single module — a role, or a member's roles across the fleet.
+ *
+ * A refusal is logged before it returns. An attempt that was turned away
+ * leaves no other trace anywhere, which makes it the half of the trail worth
+ * being careful about.
+ *
+ * @returns {Promise<{denied: object}|{access: object}>} — check `.denied` first.
  */
-async function guard(resource, action) {
+async function guard(resource, action, moduleKey) {
   try {
-    await requireConsole({ resource, action });
-    return null;
+    const access = await requireConsole({ resource, action, moduleKey });
+    return { access };
   } catch (e) {
-    return fail(e.message);
+    await record({
+      actor: e.its ?? "(unknown)", moduleKey, resource, action,
+      result: "denied", detail: e.message,
+    });
+    return { denied: fail(e.message) };
   }
 }
+
+/** Record a write that happened. Never throws — see lib/log.js. */
+const logged = (access, e) => record({
+  actor: access?.itsId, actorName: access?.name, result: "ok", ...e,
+});
 
 const bump = (...tables) => tables.forEach((t) => revalidateTag(`t:${t}`));
 
@@ -61,7 +79,7 @@ const str = (form, name) => String(form.get(name) ?? "").trim();
  * cell, the same way office-console refuses a duplicate assignment.
  */
 export async function setPermission(_prev, form) {
-  const denied = await guard("permission", "edit");
+  const { denied, access } = await guard("permission", "edit", str(form, "moduleKey"));
   if (denied) return denied;
   const roleId = str(form, "roleId");
   const moduleId = str(form, "moduleId");
@@ -94,6 +112,15 @@ export async function setPermission(_prev, form) {
   bump(T.ROLE_PERMISSIONS);
 
   const granted = fields.View || fields.Create || fields.Edit || fields.Delete;
+  await logged(access, {
+    moduleKey, resource: "permission", action: "edit",
+    target: `${str(form, "roleName") || roleId} — ${resource}`,
+    detail: granted
+      ? `${["view", "create", "edit", "delete"].filter((v) => fields[v[0].toUpperCase() + v.slice(1)]).join(" ")}`
+        + `${fields.Capabilities ? ` · caps: ${fields.Capabilities.replace(/\n/g, ", ")}` : ""}`
+        + ` · scope ${fields["Scope Rule"]}`
+      : "cleared — grants nothing",
+  });
   return ok(granted ? "Saved." : "Cleared — with nothing ticked, this cell grants no access.");
 }
 
@@ -110,8 +137,6 @@ export async function setPermission(_prev, form) {
  * across a column must not invent a delete on a module that has no such path.
  */
 export async function setVerbAcross(_prev, form) {
-  const denied = await guard("permission", "bulk_edit");
-  if (denied) return denied;
   const verb = str(form, "verb");
   if (!["View", "Create", "Edit", "Delete"].includes(verb)) return fail("Unknown action.");
   const value = form.get("value") === "true";
@@ -121,6 +146,20 @@ export async function setVerbAcross(_prev, form) {
   catch { return fail("Could not read the selection."); }
   if (!Array.isArray(targets) || targets.length === 0) return fail("Nothing selected.");
   if (targets.length > 500) return fail("Too many at once — narrow the selection.");
+
+  // A bulk spans many cells and so, possibly, many modules. Every one is checked
+  // rather than the request as a whole: an owner ticking a whole role's row must
+  // not sweep up modules they do not administer. All or nothing, because this
+  // file's own rule is that a bulk write's confirmation and its effect must not
+  // drift apart — a partial sweep is precisely that drift.
+  const moduleKeys = [...new Set(targets.map((t) => t.moduleKey).filter(Boolean))];
+  if (!moduleKeys.length) return fail("Nothing selected names a module.");
+  let access;
+  for (const key of moduleKeys) {
+    const g = await guard("permission", "bulk_edit", key);
+    if (g.denied) return g.denied;
+    access = g.access;
+  }
 
   const table = await idOf(T.ROLE_PERMISSIONS);
   const existing = await getRolePermissions();
@@ -167,6 +206,13 @@ export async function setVerbAcross(_prev, form) {
   bump(T.ROLE_PERMISSIONS);
 
   const total = toUpdate.length + created;
+  await logged(access, {
+    moduleKey: moduleKeys.length === 1 ? moduleKeys[0] : "",
+    resource: "permission", action: "bulk_edit",
+    target: `${targets.length} cell(s)`,
+    detail: `${value ? "granted" : "removed"} ${verb.toLowerCase()} across ${moduleKeys.join(", ")}`
+      + ` — ${total} changed`,
+  });
   if (total === 0) return ok("Nothing to change — already in that state.");
   return ok(value
     ? `${verb.toLowerCase()} granted on ${total} ${total === 1 ? "resource" : "resources"}.`
@@ -178,7 +224,7 @@ export async function setVerbAcross(_prev, form) {
  * ------------------------------------------------------------------ */
 
 export async function saveModule(_prev, form) {
-  const denied = await guard("module", str(form, "id") ? "edit" : "create");
+  const { denied, access } = await guard("module", str(form, "id") ? "edit" : "create", str(form, "key").toLowerCase());
   if (denied) return denied;
   const key = str(form, "key").toLowerCase();
   if (!/^[a-z][a-z0-9_-]{1,31}$/.test(key)) {
@@ -205,6 +251,10 @@ export async function saveModule(_prev, form) {
     await createRecords(table, [{ ...fields, "Manifest Status": "Never fetched" }]);
   }
   bump(T.MODULES);
+  await logged(access, {
+    moduleKey: key, resource: "module", action: id ? "edit" : "create", target: key,
+    detail: `${fields.Status}/${fields.Visibility}${fields.URL ? ` · ${fields.URL}` : ""}`,
+  });
   return ok(id ? "Module saved." : `Module "${key}" registered.`);
 }
 
@@ -216,7 +266,7 @@ export async function saveModule(_prev, form) {
  * that were correct a minute ago.
  */
 export async function refreshManifest(_prev, form) {
-  const denied = await guard("module", "fetch_manifest");
+  const { denied, access } = await guard("module", "fetch_manifest", str(form, "moduleKey"));
   if (denied) return denied;
   const moduleId = str(form, "moduleId");
   const moduleKey = str(form, "moduleKey");
@@ -231,6 +281,12 @@ export async function refreshManifest(_prev, form) {
       "Manifest Checked": new Date().toISOString(),
     });
     bump(T.MODULES);
+    // A failed fetch is recorded too: "the manifest stopped resolving on the
+    // 12th" is the fact someone needs when grants start reading as orphaned.
+    await logged(access, {
+      moduleKey, resource: "module", action: "fetch_manifest", target: url,
+      detail: `${result.status} — ${result.error}`,
+    });
     return fail(`${moduleKey}: ${result.error}`);
   }
 
@@ -253,6 +309,12 @@ export async function refreshManifest(_prev, form) {
   }
 
   bump(T.MODULES, T.ROLE_PERMISSIONS);
+  await logged(access, {
+    moduleKey, resource: "module", action: "fetch_manifest", target: url,
+    detail: `OK · hash ${result.hash.slice(0, 12)}`
+      + `${orphans.length ? ` · ${orphans.length} flagged` : ""}`
+      + `${revived.length ? ` · ${revived.length} un-flagged` : ""}`,
+  });
   const notes = [
     orphans.length ? `${orphans.length} grant${orphans.length === 1 ? "" : "s"} flagged` : null,
     revived.length ? `${revived.length} un-flagged` : null,
@@ -272,7 +334,7 @@ export async function refreshManifest(_prev, form) {
  * and an Explicit role is the only kind that ever stores a person.
  */
 export async function saveAccessRole(_prev, form) {
-  const denied = await guard("access_role", str(form, "id") ? "edit" : "create");
+  const { denied, access } = await guard("access_role", str(form, "id") ? "edit" : "create");
   if (denied) return denied;
   const id = str(form, "id");
   const key = str(form, "key").toLowerCase();
@@ -325,6 +387,11 @@ export async function saveAccessRole(_prev, form) {
   if (id) await updateRecord(table, id, fields);
   else await createRecords(table, [fields]);
   bump(T.ACCESS_ROLES);
+  await logged(access, {
+    resource: "access_role", action: id ? "edit" : "create", target: name,
+    detail: `${membership}${orgRole ? ` — ${orgRole}` : ""} · tier ${fields.Tier}`
+      + `${inherits ? " · inherits" : ""}`,
+  });
 
   const how = membership === "Everyone"
     ? "Everyone who signs in now holds it — grant it only what any recognised person may see."
@@ -346,7 +413,7 @@ export async function saveAccessRole(_prev, form) {
  * population.
  */
 export async function grantMember(_prev, form) {
-  const denied = await guard("member", "create");
+  const { denied, access } = await guard("member", "create");
   if (denied) return denied;
   const itsId = str(form, "itsId");
   if (!/^\d{6,10}$/.test(itsId)) return fail("An ITS ID is 6–10 digits.");
@@ -373,18 +440,24 @@ export async function grantMember(_prev, form) {
     }]);
   }
   bump(T.ACCESS_MEMBERS);
+  await logged(access, {
+    resource: "member", action: "create", target: itsId,
+    detail: `${existing ? "updated" : "provisioned"} with ${roleIds.length} role(s)`
+      + `${fields.Expires ? ` · expires ${fields.Expires}` : ""}`,
+  });
   return ok(existing ? `${itsId} updated.` : `${itsId} provisioned with ${roleIds.length} role(s).`);
 }
 
 /** Suspend or reinstate. Never a delete — the history of who had access is the point. */
 export async function setMemberStatus(_prev, form) {
-  const denied = await guard("member", "suspend");
+  const { denied, access } = await guard("member", "suspend");
   if (denied) return denied;
   const id = str(form, "id");
   const status = str(form, "status");
   if (!id || !["Active", "Suspended"].includes(status)) return fail("Unknown status.");
   await updateRecord(await idOf(T.ACCESS_MEMBERS), id, { Status: status });
   bump(T.ACCESS_MEMBERS);
+  await logged(access, { resource: "member", action: "suspend", target: id, detail: status });
   return ok(status === "Suspended"
     ? "Suspended. Rule-based roles are unaffected — use a deny override to lock someone out entirely."
     : "Reinstated.");
@@ -395,7 +468,7 @@ export async function setMemberStatus(_prev, form) {
  * ------------------------------------------------------------------ */
 
 export async function saveOverride(_prev, form) {
-  const denied = await guard("override", "create");
+  const { denied, access } = await guard("override", "create", str(form, "moduleKey"));
   if (denied) return denied;
   const itsId = str(form, "itsId");
   const moduleId = str(form, "moduleId");
@@ -425,6 +498,10 @@ export async function saveOverride(_prev, form) {
     Expires: str(form, "expires") || null,
   }]);
   bump(T.ACCESS_OVERRIDES);
+  await logged(access, {
+    moduleKey, resource: "override", action: "create", target: itsId,
+    detail: `${effect}${resource ? ` on ${resource}` : " (whole module)"} — ${reason}`,
+  });
 
   const blanket = effect === "Deny" && !resource
     && !bool(form, "view") && !bool(form, "create") && !bool(form, "edit") && !bool(form, "delete");
@@ -435,11 +512,15 @@ export async function saveOverride(_prev, form) {
 
 /** End an override now by stamping it expired, rather than removing the row. */
 export async function expireOverride(_prev, form) {
-  const denied = await guard("override", "expire");
+  const { denied, access } = await guard("override", "expire", str(form, "moduleKey"));
   if (denied) return denied;
   const id = str(form, "id");
   if (!id) return fail("No override named.");
   await updateRecord(await idOf(T.ACCESS_OVERRIDES), id, { Expires: new Date().toISOString() });
   bump(T.ACCESS_OVERRIDES);
+  await logged(access, {
+    moduleKey: str(form, "moduleKey"), resource: "override", action: "expire", target: id,
+    detail: "ended early",
+  });
   return ok("Expired. The row is kept — it is the record of an exception that once applied.");
 }

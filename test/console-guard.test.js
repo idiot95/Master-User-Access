@@ -108,7 +108,7 @@ test("the manifest claims no delete, because nothing here deletes", () => {
 test("every admin page gates itself on view", () => {
   const pages = {
     modules: "module", roles: "access_role", permissions: "permission",
-    members: "member", overrides: "override", explain: "explain",
+    members: "member", overrides: "override", explain: "explain", logs: "log",
   };
   const missing = [];
   for (const [page, resource] of Object.entries(pages)) {

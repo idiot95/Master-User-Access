@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "module": "user-access",
-  "revision": "1",
+  "revision": "2",
   "generated": "2026-08-14T00:00:00Z",
   "name": {
     "en": "User Access",
@@ -12,50 +12,116 @@
       "key": "permission",
       "label": "The rights matrix",
       "description": "Which access role may do what in which module. Editing this is how access is given to anyone, for anything — including access to this screen.",
-      "vced": ["view", "edit"],
+      "vced": [
+        "view",
+        "edit"
+      ],
       "capabilities": [
-        { "key": "bulk_edit", "label": "Tick or clear a whole row or column at once" }
+        {
+          "key": "bulk_edit",
+          "label": "Tick or clear a whole row or column at once"
+        }
+      ],
+      "scopeDimensions": [
+        "module"
       ]
     },
     {
       "key": "member",
       "label": "Members",
       "description": "The people provisioned by name. Granting someone a role here is how a person comes to hold rights at all.",
-      "vced": ["view", "create", "edit"],
+      "vced": [
+        "view",
+        "create",
+        "edit"
+      ],
       "capabilities": [
-        { "key": "suspend", "label": "Suspend or restore a member without removing their roles" }
+        {
+          "key": "suspend",
+          "label": "Suspend or restore a member without removing their roles"
+        }
       ]
     },
     {
       "key": "access_role",
       "label": "Access roles",
       "description": "The roles themselves, how membership of each is decided, and what inherits from what.",
-      "vced": ["view", "create", "edit"]
+      "vced": [
+        "view",
+        "create",
+        "edit"
+      ]
     },
     {
       "key": "module",
       "label": "Module registry",
       "description": "Which modules exist, where they are served from, and whether they are public or granted.",
-      "vced": ["view", "create", "edit"],
+      "vced": [
+        "view",
+        "create",
+        "edit"
+      ],
       "capabilities": [
-        { "key": "fetch_manifest", "label": "Re-read a module's manifest and reconcile orphaned grants" }
+        {
+          "key": "fetch_manifest",
+          "label": "Re-read a module's manifest and reconcile orphaned grants"
+        }
+      ],
+      "scopeDimensions": [
+        "module"
       ]
     },
     {
       "key": "override",
       "label": "Overrides",
       "description": "Person-level exceptions. A deny here outranks every grant in the matrix.",
-      "vced": ["view", "create", "edit"],
+      "vced": [
+        "view",
+        "create",
+        "edit"
+      ],
       "capabilities": [
-        { "key": "expire", "label": "End an override now rather than waiting for its expiry" }
+        {
+          "key": "expire",
+          "label": "End an override now rather than waiting for its expiry"
+        }
+      ],
+      "scopeDimensions": [
+        "module"
       ]
     },
     {
       "key": "explain",
       "label": "Explain",
       "description": "Why a given person can see a given thing. Reading it exposes what anyone holds, so it is grantable on its own.",
-      "vced": ["view"]
+      "vced": [
+        "view"
+      ],
+      "scopeDimensions": [
+        "module"
+      ]
+    },
+    {
+      "key": "log",
+      "label": "Audit log",
+      "description": "Every write this console made and every one it refused, newest first. A sub-resource of a module: whoever administers one sees that module's entries and no others.",
+      "vced": [
+        "view"
+      ],
+      "scopeDimensions": [
+        "module"
+      ]
     }
   ],
-  "scopeDimensions": []
+  "scopeDimensions": [
+    {
+      "key": "module",
+      "label": "Module",
+      "source": "self",
+      "selfEndpoint": "/.well-known/access-scopes/module",
+      "selection": "multiple",
+      "supportsAll": true,
+      "description": "Which modules this reaches. Whoever is named as a module's Platform Admin holds its permissions, overrides and log without needing a row here."
+    }
+  ]
 }
