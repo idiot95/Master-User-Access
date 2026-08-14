@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "module": "user-access",
-  "revision": "2",
+  "revision": "3",
   "generated": "2026-08-14T00:00:00Z",
   "name": {
     "en": "User Access",
@@ -55,7 +55,7 @@
     {
       "key": "module",
       "label": "Module registry",
-      "description": "Which modules exist, where they are served from, and whether they are public or granted.",
+      "description": "Which modules exist, where they are served from, and whether they are public or granted. Naming who administers one is its own capability: an owner may hand their module to a colleague without also being able to change its URL or make it public.",
       "vced": [
         "view",
         "create",
@@ -65,6 +65,10 @@
         {
           "key": "fetch_manifest",
           "label": "Re-read a module's manifest and reconcile orphaned grants"
+        },
+        {
+          "key": "set_owner",
+          "label": "Name who administers this module"
         }
       ],
       "scopeDimensions": [

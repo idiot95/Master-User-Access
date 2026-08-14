@@ -108,6 +108,7 @@ test("every right an owner holds is spelled out, not derived", () => {
     "explain:view",
     "log:view",
     "module:fetch_manifest",
+    "module:set_owner",
     "module:view",
     "override:create",
     "override:expire",

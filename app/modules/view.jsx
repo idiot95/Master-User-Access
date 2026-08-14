@@ -5,12 +5,12 @@ import {
   PageHeader, Stack, Cluster, Card, Badge, Tag, Button, Input, Select, Textarea,
   Label, Drawer, EmptyState, Callout,
 } from "@al-rayhaanat/system";
-import { saveModule, refreshManifest } from "../actions.js";
+import { saveModule, refreshManifest, setModuleOwners } from "../actions.js";
 
 const STATUS = ["Live", "Beta", "Hidden", "Retired"];
 const VISIBILITY = ["Granted", "Public"];
 
-export function ModulesView({ modules }) {
+export function ModulesView({ modules, mayRegister = true }) {
   const [editing, setEditing] = useState(null);
 
   return (
@@ -18,7 +18,9 @@ export function ModulesView({ modules }) {
       <PageHeader
         title="Modules"
         description="The fleet. Each module declares what it can be granted by serving a manifest at /.well-known/access-manifest.json — User Access never reads a module's data."
-        actions={<Button icon="plus" onClick={() => setEditing({})}>Register a module</Button>}
+        actions={mayRegister
+          ? <Button icon="plus" onClick={() => setEditing({})}>Register a module</Button>
+          : null}
       />
 
       {modules.length === 0 ? (
@@ -49,11 +51,14 @@ export function ModulesView({ modules }) {
                     </span>
                     <ManifestBadge module={m} />
                   </Cluster>
+                  <Owners module={m} />
                 </Stack>
                 <Cluster gap="2">
                   <RefreshButton module={m} />
-                  <Button variant="secondary" size="sm" icon="pencil"
-                    onClick={() => setEditing(m)}>Edit</Button>
+                  {mayRegister && (
+                    <Button variant="secondary" size="sm" icon="pencil"
+                      onClick={() => setEditing(m)}>Edit</Button>
+                  )}
                 </Cluster>
               </Cluster>
             </Card>
@@ -65,6 +70,56 @@ export function ModulesView({ modules }) {
         title={editing?.id ? `Edit ${editing.name}` : "Register a module"}>
         {editing && <ModuleForm module={editing} onDone={() => setEditing(null)} />}
       </Drawer>
+    </Stack>
+  );
+}
+
+/**
+ * Who administers this module — the per-module half of Platform Admin.
+ *
+ * Deliberately here rather than on Members. A member row grants an access role,
+ * and a role reaches every module it is granted on; there is no way to say
+ * "admin, but only mawaqeet" in that shape. Ownership is a property of the
+ * module, so it is edited on the module.
+ */
+function Owners({ module: m }) {
+  const [state, action, pending] = useActionState(setModuleOwners, null);
+  const [open, setOpen] = useState(false);
+  const current = String(m.platformAdmin ?? "").split(/[,\s]+/).map((x) => x.trim()).filter(Boolean);
+
+  return (
+    <Stack gap="2">
+      <Cluster gap="2" align="center">
+        <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+          administered by
+        </span>
+        {current.length
+          ? current.map((its) => <Tag key={its}>{its}</Tag>)
+          : <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>nobody yet</span>}
+        <Button variant="ghost" size="sm" icon={open ? "x" : "users"}
+          onClick={() => setOpen(!open)}>{open ? "Cancel" : "Change"}</Button>
+      </Cluster>
+
+      {open && (
+        <form action={action}>
+          <input type="hidden" name="moduleId" value={m.id} />
+          <input type="hidden" name="moduleKey" value={m.key} />
+          <Stack gap="2">
+            <Label htmlFor={`owners-${m.id}`}>ITS IDs, one per line</Label>
+            <Textarea id={`owners-${m.id}`} name="owners" rows={3}
+              defaultValue={current.join("\n")} placeholder="40452114" />
+            <Hint>
+              They hold this module&rsquo;s permissions, overrides and log — and nothing
+              outside it. They can use the access roles that exist but cannot edit them.
+            </Hint>
+            {state?.ok === false && <Callout tone="danger" title="Not saved">{state.message}</Callout>}
+            {state?.ok && <Callout tone="success" title="Saved">{state.message}</Callout>}
+            <Cluster gap="2">
+              <Button type="submit" size="sm" loading={pending}>Save administrators</Button>
+            </Cluster>
+          </Stack>
+        </form>
+      )}
     </Stack>
   );
 }

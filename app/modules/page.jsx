@@ -12,7 +12,10 @@ export default async function Page() {
   }
 
   const [all, permissions] = await Promise.all([getModules(), getRolePermissions()]);
-  // Registering a new module is a fleet act; an owner only sees their own rows.
+  // An owner sees their own rows. Registering a new module, or changing a URL
+  // or visibility, is a fleet act and stays with whoever administers this
+  // console — an owner names co-administrators instead, which is its own
+  // capability precisely so the two do not travel together.
   const allowed = scopeModules(access, "module", "view");
   const modules = allowed === null ? all : all.filter((m) => allowed.includes(m.key));
   const grantCount = (key) => permissions.filter((p) => p.moduleKey === key && !p.orphaned).length;
@@ -21,7 +24,7 @@ export default async function Page() {
   return (
     <ModulesView
       modules={modules.map((m) => ({ ...m, grants: grantCount(m.key), orphaned: orphanCount(m.key) }))}
-      mayRegister={allowed === null}
+      mayRegister={can(access, "module", "create")}
     />
   );
 }

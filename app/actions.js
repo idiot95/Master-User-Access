@@ -259,6 +259,54 @@ export async function saveModule(_prev, form) {
 }
 
 /**
+ * Who administers this module.
+ *
+ * The per-module half of Platform Admin, and the only way to set it that is not
+ * a Teable row edit. Its own capability rather than part of `module:edit`,
+ * because an owner handing their module to a colleague is a different act from
+ * changing the URL its manifest is read from or flipping it to Public — those
+ * reach past their own module, and this does not.
+ *
+ * An owner may name co-owners of a module they already administer, which is
+ * what makes the model self-sustaining: a team does not have to come back to
+ * whoever runs the console every time someone joins it.
+ *
+ * The list is stored as ITS IDs, one per line, and validated here rather than
+ * trusted: a typo'd digit is a person who quietly holds nothing, which reads as
+ * "the console is broken" long before anyone suspects the input.
+ */
+export async function setModuleOwners(_prev, form) {
+  const { denied, access } = await guard("module", "set_owner", str(form, "moduleKey"));
+  if (denied) return denied;
+
+  const moduleId = str(form, "moduleId");
+  if (!moduleId) return fail("No module named.");
+
+  const raw = String(form.get("owners") ?? "");
+  const ids = [...new Set(raw.split(/[,\s]+/).map((x) => x.trim()).filter(Boolean))];
+  const bad = ids.filter((x) => !/^\d{6,10}$/.test(x));
+  if (bad.length) {
+    return fail(`Not an ITS ID: ${bad.join(", ")}. Six to ten digits, one per line.`);
+  }
+
+  // Emptying it is allowed and is not a mistake worth blocking — a module whose
+  // owner has left should be administrable by whoever runs the console until a
+  // new one is named. But say what it means, because it is easy to do by accident.
+  await updateRecord(await idOf(T.MODULES), moduleId, { "Platform Admin": ids.join("\n") });
+  bump(T.MODULES);
+
+  await logged(access, {
+    moduleKey: str(form, "moduleKey"), resource: "module", action: "set_owner",
+    target: ids.join(", ") || "(nobody)",
+    detail: `${ids.length} administrator${ids.length === 1 ? "" : "s"}`,
+  });
+
+  return ok(ids.length
+    ? `${ids.length} administrator${ids.length === 1 ? "" : "s"} — they hold this module's permissions, overrides and log.`
+    : "Cleared. Only whoever administers User Access can grant access to this module now.");
+}
+
+/**
  * Re-read a module's manifest and reconcile the grants that point at it.
  *
  * A fetch failure leaves the stored hash and every orphan flag untouched. A
