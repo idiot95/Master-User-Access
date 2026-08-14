@@ -83,23 +83,74 @@ Give that token to whoever administers User Access; it goes in the module's
 `Manifest Token` field. The manifest itself stays public — it is vocabulary, and
 it carries no authority.
 
-### 3. The gate
+### 3. The gate — `@al-rayhaanat/access`
 
-```ts
-// middleware.ts
-import { accessMiddleware } from '@al-rayhaanat/access';
-export default accessMiddleware({ module: 'hoto' });
-export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] };
+The package is not published; the fleet vendors it, the same way this app
+vendors the design system:
+
+```sh
+node scripts/vendor-design-system.mjs --from ../rayhanat-design-system
+# then in package.json: "@al-rayhaanat/access": "file:vendor/@al-rayhaanat/access"
+npm install
 ```
 
-Then on **every write path**, server-side:
+Two environment variables, neither of them a secret of the console's:
 
-```ts
-const access = await requireAccess({ module: 'hoto', resource: 'schedule', action: 'edit' });
+```sh
+ACCESS_CONSOLE_URL=https://access.daeratulaqeeq.org
+ACCESS_MODULE=hoto        # so `module:` can be left off every call
+```
+
+**The gate** — `proxy.js` at the project root. Next 16 renamed `middleware` to
+`proxy`; on Next 15 the file is `middleware.js` and the export is
+`accessMiddleware`, which is the same function.
+
+```js
+import { accessProxy, accessMatcher } from '@al-rayhaanat/access/proxy';
+
+export default accessProxy({ module: 'hoto' });
+export const config = { matcher: accessMatcher };
+```
+
+It verifies the envelope locally — a signature check against a cached JWKS, no
+call to the console on the request path — and sends anyone without one to
+`/authorize` and back. It answers **one** question: may this person reach this
+module at all. It runs before Next has chosen a route, so it cannot know which
+resource or which verb your request is about.
+
+**Every write** — inside the route or the Server Function:
+
+```js
+import { requireAccess, AccessDenied } from '@al-rayhaanat/access';
+
+export async function POST(request) {
+  const access = await requireAccess({ resource: 'schedule', action: 'edit' });
+  // access.its is who did it — good enough for an audit column
+}
+```
+
+`requireAccess` throws `AccessDenied` with `.status` (401 with no envelope, 403
+with one that does not permit it) and a message naming the resource and the
+verb, so whoever administers access is told what to tick rather than
+"Forbidden".
+
+**Every scoped read** — if you declared a dimension, filter on it:
+
+```js
+import { scopeFilter } from '@al-rayhaanat/access';
+
+const { rule, values } = await scopeFilter({ resource: 'schedule', dimension: 'jamiat' });
+if (rule === 'none') return [];                       // no scope authority at all
+if (rule === 'own') rows = rows.filter((r) => values.includes(r.jamiat));
 ```
 
 > **The client gate is UX. The server gate is security.** Hiding a button is a
 > courtesy. If your API route does not check, the button may as well not exist.
+
+One reason that is sharper than it sounds on Next: **a Server Function is a POST
+to whichever route it was used on.** Move one, or narrow your matcher, and the
+proxy silently stops covering it. Next's own documentation says to check inside
+the function rather than rely on the proxy. So does this brief.
 
 ---
 
@@ -171,6 +222,16 @@ use `self`.**
                                           verified locally against JWKS
 ```
 
+The envelope arrives as the `da_access` cookie, set by the console on the fleet's
+parent domain. You never fetch it; the browser carries it. When it is missing or
+expired, `accessProxy` bounces the person through
+`https://access.daeratulaqeeq.org/authorize?redirect=<where they were going>` and
+they come back with a fresh one — no password, if their console session is still
+alive.
+
+Fifteen minutes is the bound on how stale your view of someone's rights can be.
+A revocation lands everywhere within that, with no deploy on your side.
+
 Three consequences worth knowing:
 
 - **Your outage is not their outage.** Manifests are never read while resolving
@@ -216,7 +277,8 @@ have produces an incident.
 - [ ] Every `resource.scopeDimensions` entry names a declared dimension.
 - [ ] Each `self` scope endpoint returns ids and labels **only**, and returns
       401 without a bearer token.
-- [ ] `middleware.ts` verifies the envelope and does not fetch the manifest.
+- [ ] `proxy.js` (or `middleware.js` on Next 15) calls `accessProxy`, and your
+      matcher does not exclude a route a Server Function lives on.
 - [ ] **Every write path calls `requireAccess` server-side.** List them and tick
       them off one by one.
 - [ ] Scoped grants are actually applied to your queries. If you declare a
@@ -243,7 +305,7 @@ is a denial, which is the safe direction to be wrong in.
 
 **A module with no server** (`explorer` — a static page). One resource,
 view-only, no scopes. The manifest is a static file in `public/`, and Vercel
-runs `middleware.ts` on static deployments, so the gate is the same one-liner.
+runs `proxy.js` on static deployments, so the gate is the same one-liner.
 Its data is embedded in the HTML, so gating delivery gates the data.
 
 ```json

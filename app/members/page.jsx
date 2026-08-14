@@ -3,11 +3,18 @@ import {
 } from "../../lib/model.js";
 import { MembersView } from "./view.jsx";
 
+import { consoleAccess, can } from "../../lib/console.js";
+import { NoAccess } from "../no-access.jsx";
 export const dynamic = "force-dynamic";
 
 const VERBS = ["view", "create", "edit", "delete"];
 
 export default async function Page() {
+  const access = await consoleAccess();
+  if (!can(access, "member", "view")) {
+    return <NoAccess resource="member" its={access.itsId} />;
+  }
+
   const [members, roles, people, permissions, modules] = await Promise.all([
     getAccessMembers(), getAccessRoles(), rawPeople(), getRolePermissions(), getModules(),
   ]);

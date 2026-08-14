@@ -23,10 +23,27 @@ they are missing.
 | `TEABLE_OFFICE_URL` | `https://app.teable.io` | |
 | `TEABLE_OFFICE_BASE` | `bseHKVLPadS6wPhefR8` | _DA Master |
 | `TEABLE_OFFICE_TOKEN` | a **read-only** token on that base | never `record|create` or `record|update` |
+| `AUTH_SECRET` | `openssl rand -base64 48` | signs the 12-hour console session |
+| `ACCESS_PRIVATE_KEY` | from `npm run keys` | signs envelopes; this app and nowhere else |
+| `ACCESS_PUBLIC_KEY` | the other half | served at `/.well-known/jwks.json` |
+| `ACCESS_ISSUER` | `https://access.daeratulaqeeq.org` | the `iss` modules check |
+| `COOKIE_DOMAIN` | `.daeratulaqeeq.org` | so every module reads the same cookie |
 
-That is the whole list. **Do not set `ALLOW_ITS_OVERRIDE`** — it turns identity
-into a query parameter. It is guarded twice, also requiring `NODE_ENV` to not be
-production, but it has no business on a deployment.
+That is the whole list. Three that must **not** be set:
+
+- **`ALLOW_ITS_OVERRIDE`** turns identity into a query parameter. It is guarded
+  twice, also requiring `NODE_ENV` to not be production, but it has no business
+  on a deployment.
+- **`TRUST_FORWARDED_ITS`** stops `proxy.js` stripping the inbound `x-its-id`
+  header. Until ITS One Login actually terminates identity in front of this app,
+  that header is whatever the browser typed.
+- **`ACCESS_KEY_ID`** is computed from the key itself. Setting it by hand is a
+  way for the `kid` in a token to stop naming the key that signed it.
+
+`ACCESS_ISSUER` is deliberately not derived from the request. On a preview
+deployment the request origin is a `*.vercel.app` host, and an envelope claiming
+that as its issuer is either rejected by every module or — worse — accepted, at
+which point a preview build hands out production rights.
 
 A single token covering both bases also works: `TEABLE_OFFICE_TOKEN` falls back
 to `TEABLE_TOKEN` when unset. The cost is that the app could then write to the
@@ -87,10 +104,51 @@ each module would need its own redirect flow.
 - Check **Overview**. It lists what is misconfigured rather than counting
   things, so an empty page there is the goal.
 
+## The envelope, once it is deployed
+
+```
+person opens hoto.daeratulaqeeq.org
+  │
+  ├─ no envelope cookie ──▶ access.daeratulaqeeq.org/authorize?redirect=…
+  │                           │
+  │                           ├─ no console session ──▶ /login, then back here
+  │                           └─ session ──▶ resolve, sign RS256, set cookie,
+  │                                          303 back to where they were going
+  │
+  └─ envelope ──▶ verified locally against JWKS. No call to this app.
+```
+
+Two clocks, deliberately: the session is 12 hours, the envelope is 15 minutes.
+Fifteen minutes is the bound on how stale a module's view of someone's rights
+can be — tick a box on the matrix and it lands everywhere within that, with no
+deploy anywhere. Signing out clears both, or a person would keep their rights
+across the fleet for a quarter of an hour after leaving.
+
+**Check after the first deploy:**
+
+```sh
+curl -s https://access.daeratulaqeeq.org/.well-known/jwks.json
+```
+
+One key, `"alg":"RS256"`, `"use":"sig"`, and no `d` field. If it returns
+`signing_key_not_configured`, the two `ACCESS_*` keys did not make it into the
+environment.
+
+### Rotating the key
+
+`npm run keys`, paste the new pair, redeploy. Envelopes live fifteen minutes, so
+the old key stops mattering a quarter of an hour later. Modules that fetch JWKS
+pick the new one up on their own; any module that pinned `ACCESS_PUBLIC_KEY` in
+its own environment needs a redeploy, which is the trade it made for never
+touching the network.
+
 ## What is not wired yet
 
-The envelope is designed but not issued: `ACCESS_PRIVATE_KEY` / `ACCESS_PUBLIC_KEY`
-and the `/.well-known/jwks.json` route are still to come, as is ITS One Login
-itself. Today the console reads and writes access configuration; it does not yet
-hand modules a signed session. `docs/module-integration-prompt.md` describes the
-contract modules should build against so they are ready when it lands.
+**ITS One Login.** `lib/auth.js` signs people in against the `Auth Store` table
+the directory already writes — four people, salted SHA-256, no rate limiting. It
+is named a stopgap in the file itself. When One Login lands, that file and the
+table both go, `TRUST_FORWARDED_ITS=1` hands identity to the gateway, and
+nothing downstream of `lib/session.js` changes.
+
+Until then the console is reachable by exactly those four accounts, and every
+envelope the fleet honours is minted behind that one door.
