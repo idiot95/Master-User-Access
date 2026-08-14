@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { Chrome } from "./chrome.jsx";
 import { target } from "../lib/teable.js";
 import { readSession, SESSION_COOKIE } from "../lib/auth.js";
+import { consoleAccess, viewable } from "../lib/console.js";
 
 export const metadata = {
   title: "User Access — Daeratul Aqeeq",
@@ -21,10 +22,18 @@ export default async function RootLayout({ children }) {
   // that; the layout must not take the whole site down over it.
   const session = await readSession(jar.get(SESSION_COOKIE)?.value).catch(() => null);
 
+  // Which screens to list. Resolving it here costs one cached read and saves
+  // every page offering links that will refuse the person who clicks them.
+  // A failure is not fatal: the nav falls back to Overview alone, and each
+  // page still gates itself.
+  const rights = session
+    ? await consoleAccess().then(viewable).catch(() => ({}))
+    : {};
+
   return (
     <html lang="en" dir="ltr">
       <body>
-        <Chrome target={target()} session={session}>{children}</Chrome>
+        <Chrome target={target()} session={session} viewable={rights}>{children}</Chrome>
       </body>
     </html>
   );

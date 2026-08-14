@@ -8,12 +8,12 @@ import {
 
 const ITEMS = [
   { label: "Overview", href: "/", icon: "grid" },
-  { label: "Roles", href: "/roles", icon: "bookmark" },
-  { label: "Permissions", href: "/permissions", icon: "table" },
-  { label: "Modules", href: "/modules", icon: "layers" },
-  { label: "Members", href: "/members", icon: "users" },
-  { label: "Overrides", href: "/overrides", icon: "sliders" },
-  { label: "Explain", href: "/explain", icon: "search" },
+  { label: "Roles", href: "/roles", icon: "bookmark", resource: "access_role" },
+  { label: "Permissions", href: "/permissions", icon: "table", resource: "permission" },
+  { label: "Modules", href: "/modules", icon: "layers", resource: "module" },
+  { label: "Members", href: "/members", icon: "users", resource: "member" },
+  { label: "Overrides", href: "/overrides", icon: "sliders", resource: "override" },
+  { label: "Explain", href: "/explain", icon: "search", resource: "explain" },
 ];
 
 /**
@@ -21,17 +21,27 @@ const ITEMS = [
  * the same reason office-console does it: granting rights against cloud while
  * believing you are on local is worth fixed chrome to prevent.
  */
-export function Chrome({ target, session, children }) {
+export function Chrome({ target, session, viewable, children }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  /**
+   * Only the screens this person actually holds.
+   *
+   * The gate is on each page and every action; this is courtesy, so nobody
+   * clicks six links to be refused by five. Overview carries no resource and is
+   * always listed — it is where a person with nothing at all lands, and a
+   * navigation with no items reads as a broken app rather than as a narrow one.
+   */
+  const navItems = ITEMS.filter((i) => !i.resource || viewable?.[i.resource]);
 
   // The login page brings its own frame. Wrapping it in the console shell would
   // show the navigation to someone who has not signed in yet — every link a
   // redirect back to where they already are.
   if (pathname === "/login") return children;
 
-  const current = (ITEMS.find((i) =>
-    i.href === "/" ? pathname === "/" : pathname.startsWith(i.href)) || ITEMS[0]).label;
+  const current = (navItems.find((i) =>
+    i.href === "/" ? pathname === "/" : pathname.startsWith(i.href)) || navItems[0]).label;
 
   // One search across modules, roles and members. Loaded on first open rather
   // than on every page, since most visits never need it.
@@ -65,7 +75,7 @@ export function Chrome({ target, session, children }) {
         <SideNav
           brand="Access"
           current={current}
-          groups={[{ items: ITEMS }]}
+          groups={[{ items: navItems }]}
           onNavigate={(item) => router.push(item.href)}
         />
       }

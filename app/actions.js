@@ -7,20 +7,43 @@ import {
 } from "../lib/model.js";
 import { fetchManifest } from "../lib/manifest.js";
 import { orphansAgainst, revivedAgainst } from "../lib/manifest.js";
+import { requireConsole } from "../lib/console.js";
 
 /**
  * Every write in the app.
  *
- * Two rules hold throughout, both inherited from office-console:
+ * Three rules hold throughout, the first two inherited from office-console:
  *   · a write is followed by revalidateTag, so a change is live on the next
  *     resolve rather than up to 30 seconds later
  *   · nothing is ever deleted. A grant that is withdrawn is emptied, and an
  *     override that ends is expired, so the record of what was once true
  *     survives — an audit trail that vanishes on edit is not one.
+ *   · **every one of them opens with `guard`.** This console is a module in
+ *     its own registry, and the right to hand out rights is itself a grant
+ *     someone holds or does not. Hiding a button is a courtesy; this is the
+ *     control.
  */
 
 const ok = (message, extra = {}) => ({ ok: true, message, ...extra });
 const fail = (message) => ({ ok: false, message });
+
+/**
+ * Check first, and report a refusal the way every other failure is reported.
+ *
+ * A denial returns rather than throws because the view renders the result
+ * beside the control the person just used — a thrown error would replace the
+ * whole screen with an error boundary and lose what they had typed.
+ *
+ * @returns the failure to return, or null to carry on.
+ */
+async function guard(resource, action) {
+  try {
+    await requireConsole({ resource, action });
+    return null;
+  } catch (e) {
+    return fail(e.message);
+  }
+}
 
 const bump = (...tables) => tables.forEach((t) => revalidateTag(`t:${t}`));
 
@@ -38,6 +61,8 @@ const str = (form, name) => String(form.get(name) ?? "").trim();
  * cell, the same way office-console refuses a duplicate assignment.
  */
 export async function setPermission(_prev, form) {
+  const denied = await guard("permission", "edit");
+  if (denied) return denied;
   const roleId = str(form, "roleId");
   const moduleId = str(form, "moduleId");
   const moduleKey = str(form, "moduleKey");
@@ -85,6 +110,8 @@ export async function setPermission(_prev, form) {
  * across a column must not invent a delete on a module that has no such path.
  */
 export async function setVerbAcross(_prev, form) {
+  const denied = await guard("permission", "bulk_edit");
+  if (denied) return denied;
   const verb = str(form, "verb");
   if (!["View", "Create", "Edit", "Delete"].includes(verb)) return fail("Unknown action.");
   const value = form.get("value") === "true";
@@ -151,6 +178,8 @@ export async function setVerbAcross(_prev, form) {
  * ------------------------------------------------------------------ */
 
 export async function saveModule(_prev, form) {
+  const denied = await guard("module", str(form, "id") ? "edit" : "create");
+  if (denied) return denied;
   const key = str(form, "key").toLowerCase();
   if (!/^[a-z][a-z0-9_-]{1,31}$/.test(key)) {
     return fail("Key must be lowercase letters, digits, dash or underscore.");
@@ -187,6 +216,8 @@ export async function saveModule(_prev, form) {
  * that were correct a minute ago.
  */
 export async function refreshManifest(_prev, form) {
+  const denied = await guard("module", "fetch_manifest");
+  if (denied) return denied;
   const moduleId = str(form, "moduleId");
   const moduleKey = str(form, "moduleKey");
   const url = str(form, "url");
@@ -241,6 +272,8 @@ export async function refreshManifest(_prev, form) {
  * and an Explicit role is the only kind that ever stores a person.
  */
 export async function saveAccessRole(_prev, form) {
+  const denied = await guard("access_role", str(form, "id") ? "edit" : "create");
+  if (denied) return denied;
   const id = str(form, "id");
   const key = str(form, "key").toLowerCase();
   const name = str(form, "name");
@@ -313,6 +346,8 @@ export async function saveAccessRole(_prev, form) {
  * population.
  */
 export async function grantMember(_prev, form) {
+  const denied = await guard("member", "create");
+  if (denied) return denied;
   const itsId = str(form, "itsId");
   if (!/^\d{6,10}$/.test(itsId)) return fail("An ITS ID is 6–10 digits.");
 
@@ -343,6 +378,8 @@ export async function grantMember(_prev, form) {
 
 /** Suspend or reinstate. Never a delete — the history of who had access is the point. */
 export async function setMemberStatus(_prev, form) {
+  const denied = await guard("member", "suspend");
+  if (denied) return denied;
   const id = str(form, "id");
   const status = str(form, "status");
   if (!id || !["Active", "Suspended"].includes(status)) return fail("Unknown status.");
@@ -358,6 +395,8 @@ export async function setMemberStatus(_prev, form) {
  * ------------------------------------------------------------------ */
 
 export async function saveOverride(_prev, form) {
+  const denied = await guard("override", "create");
+  if (denied) return denied;
   const itsId = str(form, "itsId");
   const moduleId = str(form, "moduleId");
   const moduleKey = str(form, "moduleKey");
@@ -396,6 +435,8 @@ export async function saveOverride(_prev, form) {
 
 /** End an override now by stamping it expired, rather than removing the row. */
 export async function expireOverride(_prev, form) {
+  const denied = await guard("override", "expire");
+  if (denied) return denied;
   const id = str(form, "id");
   if (!id) return fail("No override named.");
   await updateRecord(await idOf(T.ACCESS_OVERRIDES), id, { Expires: new Date().toISOString() });

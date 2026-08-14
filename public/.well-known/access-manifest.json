@@ -1,0 +1,61 @@
+{
+  "manifestVersion": 1,
+  "module": "user-access",
+  "revision": "1",
+  "generated": "2026-08-14T00:00:00Z",
+  "name": {
+    "en": "User Access",
+    "ar": "صلاحيات المستخدمين"
+  },
+  "resources": [
+    {
+      "key": "permission",
+      "label": "The rights matrix",
+      "description": "Which access role may do what in which module. Editing this is how access is given to anyone, for anything — including access to this screen.",
+      "vced": ["view", "edit"],
+      "capabilities": [
+        { "key": "bulk_edit", "label": "Tick or clear a whole row or column at once" }
+      ]
+    },
+    {
+      "key": "member",
+      "label": "Members",
+      "description": "The people provisioned by name. Granting someone a role here is how a person comes to hold rights at all.",
+      "vced": ["view", "create", "edit"],
+      "capabilities": [
+        { "key": "suspend", "label": "Suspend or restore a member without removing their roles" }
+      ]
+    },
+    {
+      "key": "access_role",
+      "label": "Access roles",
+      "description": "The roles themselves, how membership of each is decided, and what inherits from what.",
+      "vced": ["view", "create", "edit"]
+    },
+    {
+      "key": "module",
+      "label": "Module registry",
+      "description": "Which modules exist, where they are served from, and whether they are public or granted.",
+      "vced": ["view", "create", "edit"],
+      "capabilities": [
+        { "key": "fetch_manifest", "label": "Re-read a module's manifest and reconcile orphaned grants" }
+      ]
+    },
+    {
+      "key": "override",
+      "label": "Overrides",
+      "description": "Person-level exceptions. A deny here outranks every grant in the matrix.",
+      "vced": ["view", "create", "edit"],
+      "capabilities": [
+        { "key": "expire", "label": "End an override now rather than waiting for its expiry" }
+      ]
+    },
+    {
+      "key": "explain",
+      "label": "Explain",
+      "description": "Why a given person can see a given thing. Reading it exposes what anyone holds, so it is grantable on its own.",
+      "vced": ["view"]
+    }
+  ],
+  "scopeDimensions": []
+}

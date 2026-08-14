@@ -30,6 +30,11 @@ const PUBLIC = new Set([
   // Modules fetch this to verify envelopes, from servers that hold no session
   // of their own. It is a public key; it grants nothing.
   "/.well-known/jwks.json",
+  // This console is a module in its own registry, so it declares itself the
+  // same way every other module does — and a manifest is vocabulary, fetched
+  // by a server with no session. Gating it would make registering this module
+  // depend on having already registered it.
+  "/.well-known/access-manifest.json",
 ]);
 
 /**

@@ -2,9 +2,16 @@ import { getModules, getAccessRoles, getRolePermissions } from "../../lib/model.
 import { loadVocabularies } from "../../lib/vocab.js";
 import { PermissionsView } from "./view.jsx";
 
+import { consoleAccess, can } from "../../lib/console.js";
+import { NoAccess } from "../no-access.jsx";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
+  const access = await consoleAccess();
+  if (!can(access, "permission", "view")) {
+    return <NoAccess resource="permission" its={access.itsId} />;
+  }
+
   const [modules, roles, permissions] = await Promise.all([
     getModules(), getAccessRoles(), getRolePermissions(),
   ]);
