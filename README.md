@@ -141,7 +141,9 @@ base. A similarly-named field is not enough: hoto's `Jamiat` is free text, so a
 | `lib/resolve.js` | the decision logic — **pure**, no I/O, so precedence can be tested exhaustively |
 | `lib/access.js` | the reads, and the bridge from ITS ID to org roles |
 | `lib/manifest.js` | fetch, validate, hash and diff manifests |
-| `lib/auth.js` | who you are, for 12 hours. A stopgap until ITS One Login |
+| `lib/upstream.js` | who you are, according to the core DA module. Verifies core's token against its JWKS |
+| `lib/identity.js` | core when `DA_CORE_URL` is set, the interim local session when it is not |
+| `lib/auth.js` | that interim session. Goes the day core serves |
 | `lib/envelope.js` | what you may do, for 15 minutes. RS256, signed here and verified everywhere |
 | `lib/redirect.js` | where `/authorize` is willing to send you afterwards — **pure**, and the only place an attacker picks a URL |
 | `proxy.js` | no session, no console. Strips inbound `x-its-*` and sets it from the cookie |
@@ -153,11 +155,14 @@ base. A similarly-named field is not enough: hoto's `Jamiat` is free text, so a
 ## Two tokens, two clocks
 
 Identity and rights expire on different schedules, and folding them into one
-cookie is how a session outlives the permissions it was issued under.
+cookie is how a session outlives the permissions it was issued under. Identity
+is not this app's to decide at all — core signs it, and this console only
+verifies it.
 
 | | Cookie | Lives | Signed | Read by |
 |---|---|---|---|---|
-| Session | `ua_session` | 12 hours | HS256, `AUTH_SECRET` | this app only |
+| Identity | `da_core` | core's to decide | RS256, core's key | every module, locally |
+| Session | `ua_session` | 12 hours | HS256, `AUTH_SECRET` | this app only — the fallback while core is not serving |
 | Envelope | `da_access` | **15 minutes** | RS256, `ACCESS_PRIVATE_KEY` | every module, locally |
 
 Fifteen minutes is the bound on how stale a module's view of someone's rights
@@ -172,8 +177,8 @@ still cannot mint an envelope for another module.
 
 ```
    module has no envelope  →  /authorize?redirect=…
-   no console session      →  /login, and back
-   session                 →  resolve, sign, set cookie on .daeratulaqeeq.org, 303 home
+   no identity             →  core.daeratulaqeeq.org/login, and back
+   identity                →  resolve, sign, set cookie on .daeratulaqeeq.org, 303 home
 ```
 
 `@al-rayhaanat/access` is the module side of this — the proxy gate, the

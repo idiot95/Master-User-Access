@@ -24,14 +24,12 @@ export function OverridesView({ overrides, modules }) {
     <Stack gap="6">
       <PageHeader
         title="Overrides"
-        description="Person-level exceptions. A deny always wins — no number of grants can outvote one — so this is the fastest way to remove access from someone immediately."
         meta={<><span>{live.length} live</span><span>{past.length} expired</span></>}
         actions={<Button icon="plus" onClick={() => setAdding(true)}>Add an override</Button>}
       />
 
       {live.length === 0 && past.length === 0 ? (
         <EmptyState title="No exceptions"
-          description="Good. Access that comes entirely from roles is access you can explain."
           action={<Button icon="plus" onClick={() => setAdding(true)}>Add an override</Button>} />
       ) : (
         <Stack gap="5">
@@ -46,9 +44,6 @@ export function OverridesView({ overrides, modules }) {
                 fontWeight: "var(--weight-regular)", color: "var(--text-secondary)" }}>
                 Expired
               </h2>
-              <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
-                Kept, never deleted — the record of an exception that once applied is the audit trail.
-              </span>
               {past.map((o) => <OverrideCard key={o.id} o={o} past />)}
             </Stack>
           )}
@@ -109,7 +104,7 @@ function ExpireButton({ o }) {
         onClose={() => setConfirming(false)}
         title="End this override?"
         description={o.effect === "Deny"
-          ? "Ending a deny restores whatever the person's roles grant them. Make sure that is what you want."
+          ? "Ending a deny restores whatever their roles grant them."
           : "Ending a grant removes the extra rights it added."}
         confirmLabel="End it"
         onConfirm={() => {
@@ -163,10 +158,7 @@ function OverrideForm({ modules, onDone }) {
         </Stack>
 
         {effect === "Deny" && (
-          <Callout tone="warning" title="A deny with nothing ticked is a full lockout">
-            Leave the resource blank and every box unticked to remove this person from the module
-            entirely. It is the plainest way to say “not this person, not here”.
-          </Callout>
+          <Callout tone="warning" title="A deny with nothing ticked is a full lockout" />
         )}
 
         <Stack gap="2">
@@ -184,14 +176,14 @@ function OverrideForm({ modules, onDone }) {
         <Stack gap="2">
           <Label htmlFor="reason">Reason</Label>
           <Textarea id="reason" name="reason" rows={2} required
-            placeholder="Why this exception exists — read six months from now by someone deciding whether to remove it." />
+            placeholder="Why this exception exists" />
         </Stack>
 
         <Stack gap="2">
           <Label htmlFor="expires">Expires</Label>
           <Input id="expires" name="expires" type="date" />
           <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
-            Blank is permanent. Most exceptions should not be.
+            Blank is permanent.
           </span>
         </Stack>
 

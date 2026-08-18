@@ -1,6 +1,6 @@
 # @al-rayhaanat/access
 
-The module side of [User Access](https://access.daeratulaqeeq.org). The console
+The module side of [User Access](https://useraccess.daeratulaqeeq.org). The console
 decides who may do what; this verifies that decision inside your module.
 
 ```sh
@@ -57,7 +57,7 @@ rather than an optimisation:
 
 | Variable | Default | |
 |---|---|---|
-| `ACCESS_CONSOLE_URL` | `https://access.daeratulaqeeq.org` | where to fetch JWKS and send people to sign in |
+| `ACCESS_CONSOLE_URL` | `https://useraccess.daeratulaqeeq.org` | where to fetch JWKS and send people to sign in |
 | `ACCESS_MODULE` | — | your module key, so `module:` can be omitted |
 | `ACCESS_ISSUER` | `ACCESS_CONSOLE_URL` | only if the console signs under a different name |
 | `ACCESS_PUBLIC_KEY` | — | pin the key instead of fetching JWKS |

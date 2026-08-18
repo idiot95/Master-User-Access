@@ -74,7 +74,6 @@ export function LogsView({ entries, modules, scoped }) {
     <Stack gap="6">
       <PageHeader
         title="Audit log"
-        description="Every write this console made, and every one it refused. Append only — nothing here is edited or removed."
         meta={
           <>
             <span>{entries.length} entries</span>
@@ -84,11 +83,7 @@ export function LogsView({ entries, modules, scoped }) {
       />
 
       {scoped && (
-        <Callout tone="info" title="Narrowed to the modules you administer">
-          Entries for modules you do not administer are not shown, and neither are
-          the fleet-wide ones — roles and members are changed by whoever administers
-          this console.
-        </Callout>
+        <Callout tone="info" title="Narrowed to the modules you administer" />
       )}
 
       <Cluster gap="4" align="end">
@@ -129,9 +124,6 @@ export function LogsView({ entries, modules, scoped }) {
         <EmptyState
           icon="search"
           title={entries.length ? "Nothing matches that" : "Nothing has been written yet"}
-          description={entries.length
-            ? "Widen the filters above."
-            : "The log fills as grants are made. It records refusals too, so an attempt that was turned away still leaves a trace."}
         />
       ) : (
         <DataTable

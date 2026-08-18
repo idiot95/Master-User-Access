@@ -17,7 +17,6 @@ export function ModulesView({ modules, mayRegister = true }) {
     <Stack gap="6">
       <PageHeader
         title="Modules"
-        description="The fleet. Each module declares what it can be granted by serving a manifest at /.well-known/access-manifest.json — User Access never reads a module's data."
         actions={mayRegister
           ? <Button icon="plus" onClick={() => setEditing({})}>Register a module</Button>
           : null}
@@ -25,7 +24,6 @@ export function ModulesView({ modules, mayRegister = true }) {
 
       {modules.length === 0 ? (
         <EmptyState title="No modules yet"
-          description="Register one, then fetch its manifest to learn what it can be granted."
           action={<Button icon="plus" onClick={() => setEditing({})}>Register a module</Button>} />
       ) : (
         <Stack gap="4">
@@ -108,10 +106,6 @@ function Owners({ module: m }) {
             <Label htmlFor={`owners-${m.id}`}>ITS IDs, one per line</Label>
             <Textarea id={`owners-${m.id}`} name="owners" rows={3}
               defaultValue={current.join("\n")} placeholder="40452114" />
-            <Hint>
-              They hold this module&rsquo;s permissions, overrides and log — and nothing
-              outside it. They can use the access roles that exist but cannot edit them.
-            </Hint>
             {state?.ok === false && <Callout tone="danger" title="Not saved">{state.message}</Callout>}
             {state?.ok && <Callout tone="success" title="Saved">{state.message}</Callout>}
             <Cluster gap="2">
@@ -169,7 +163,7 @@ function ModuleForm({ module: m, onDone }) {
           <Label htmlFor="key">Key</Label>
           <Input id="key" name="key" defaultValue={m.key ?? ""} required
             placeholder="hoto" readOnly={!!m.id} />
-          <Hint>Immutable once set — every grant and manifest points at it.</Hint>
+          <Hint>Cannot change once set.</Hint>
         </Stack>
 
         <Stack gap="2">
@@ -185,8 +179,8 @@ function ModuleForm({ module: m, onDone }) {
         <Stack gap="2">
           <Label htmlFor="url">URL</Label>
           <Input id="url" name="url" type="url" defaultValue={m.url ?? ""}
-            placeholder="https://hoto.daeratulaqeeq.org" />
-          <Hint>The manifest is fetched from this origin at /.well-known/access-manifest.json</Hint>
+            placeholder="https://mawaqeet.daeratulaqeeq.org" />
+          <Hint>/.well-known/access-manifest.json is read from this origin.</Hint>
         </Stack>
 
         <Cluster gap="4">
@@ -201,10 +195,6 @@ function ModuleForm({ module: m, onDone }) {
               options={VISIBILITY.map((v) => ({ value: v, label: v }))} />
           </Stack>
         </Cluster>
-        <Hint>
-          Public means any recognised person may open it with no grant at all. Granted means the
-          matrix decides, and an absent row is a denial.
-        </Hint>
 
         <Cluster gap="4">
           <Stack gap="2" style={{ flex: 1 }}>

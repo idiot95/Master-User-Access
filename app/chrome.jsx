@@ -114,19 +114,13 @@ export function Chrome({ target, session, viewable, children }) {
           <Stack gap="3">
             <span>
               Nothing can load until {target.missing.length === 1 ? "it is" : "they are"} set.
-              {" "}On Vercel these go in <strong>Project Settings → Environment Variables</strong>,
-              and a redeploy is needed afterwards — new variables do not reach an existing build.
+              {" "}Set {target.missing.length === 1 ? "it" : "them"} on Vercel and redeploy.
             </span>
             <code style={{ display: "block", whiteSpace: "pre", fontSize: "var(--text-xs)",
               padding: "var(--space-4)", borderRadius: "var(--radius-md)",
               background: "var(--surface-sunken)", overflowX: "auto" }}>
               {target.missing.map((k) => `${k}=`).join("\n")}
             </code>
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
-              <code>TEABLE_OFFICE_TOKEN</code> is optional — it falls back to
-              {" "}<code>TEABLE_TOKEN</code> when unset, which only works if that token
-              covers both bases. See DEPLOY.md.
-            </span>
           </Stack>
         </Callout>
       )}

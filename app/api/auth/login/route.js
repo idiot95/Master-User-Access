@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { records, title } from "../../../../lib/teable.js";
 import { idOf, T, rawPeople } from "../../../../lib/model.js";
 import { verifyPassword, issueSession, cookieOptions } from "../../../../lib/auth.js";
+import { coreConfigured } from "../../../../lib/upstream.js";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,16 @@ export const dynamic = "force-dynamic";
  * intended.
  */
 export async function POST(request) {
+  // Core owns sign-in once it exists. Leaving this endpoint live would be a
+  // second, weaker way to mint a session for the same people — closed here
+  // rather than only hidden from the UI, because a route nobody links to is
+  // still a route anyone can post to.
+  if (coreConfigured()) {
+    return NextResponse.json(
+      { error: "Sign-in has moved to the core DA module." },
+      { status: 410 });
+  }
+
   let body;
   try { body = await request.json(); } catch { body = {}; }
   const itsId = String(body.itsId ?? "").trim();

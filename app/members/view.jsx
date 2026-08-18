@@ -30,7 +30,6 @@ export function MembersView({ members, grantable, ruleRoles, register }) {
     <Stack gap="6">
       <PageHeader
         title="Members"
-        description="People provisioned by name. Roles that decide their own membership — Everyone, and anything following an org role — store no rows here at all."
         meta={
           <>
             <span>{members.length} held</span>
@@ -45,9 +44,7 @@ export function MembersView({ members, grantable, ruleRoles, register }) {
 
       {grantable.length === 0 && (
         <Callout tone="warning" variant="card" title="There is nothing to grant yet">
-          Every access role currently decides its own membership, so adding a person here would
-          give them nothing. Create a role with <strong>Membership = Explicit</strong> first, then
-          tick what it opens on the <a href="/permissions">Permissions</a>.
+          Create a role with <strong>Membership = Explicit</strong> first.
         </Callout>
       )}
 
@@ -55,11 +52,7 @@ export function MembersView({ members, grantable, ruleRoles, register }) {
         placeholder="Search by ITS ID or name…" />
 
       {shown.length === 0 ? (
-        <EmptyState
-          title={q ? "Nobody matches that" : "Nobody is provisioned by name"}
-          description={q ? undefined
-            : "This is the expected state early on — most access should come from rules, not from a list."}
-        />
+        <EmptyState title={q ? "Nobody matches that" : "Nobody is provisioned by name"} />
       ) : (
         <Stack gap="3">
           {shown.map((m) => (
@@ -82,7 +75,7 @@ export function MembersView({ members, grantable, ruleRoles, register }) {
                     <Cluster gap="2">
                       {m.roleNames.length
                         ? m.roleNames.map((n) => <Tag key={n}>{n}</Tag>)
-                        : <span style={muted}>no explicit roles — this person is holding nothing</span>}
+                        : <span style={muted}>no explicit roles</span>}
                     </Cluster>
                   </Stack>
                 </Cluster>
@@ -128,7 +121,7 @@ function StatusButton({ member }) {
         onClose={() => setConfirming(false)}
         title={suspending ? `Suspend ${member.name || member.itsId}?` : `Reinstate ${member.name || member.itsId}?`}
         description={suspending
-          ? "They lose the roles granted here on their next sign-in. Anything they hold from an org role or from Everyone is unaffected — for a complete lockout, add a deny override instead."
+          ? "They lose the roles granted here on their next sign-in. Anything from an org role or from Everyone is unaffected."
           : "Their explicit roles take effect again on their next sign-in."}
         confirmLabel={suspending ? "Suspend" : "Reinstate"}
         onConfirm={() => {
@@ -200,7 +193,7 @@ function MemberForm({ member, grantable, register, onDone }) {
             <Input id="name" name="name"
               defaultValue={member.name ?? ""}
               key={match?.name ?? "none"}
-              placeholder={match?.name ?? "Filled from ITS on first sign-in if left blank"} />
+              placeholder={match?.name ?? ""} />
           </Stack>
         </Stack>
 
@@ -221,15 +214,11 @@ function MemberForm({ member, grantable, register, onDone }) {
                 <span style={{ ...muted, paddingInlineStart: "var(--space-7)" }}>
                   {r.opens.length
                     ? r.opens.map((o) => `${o.module} (${o.verbs.join(", ")})`).join(" · ")
-                    : "opens nothing yet — nothing is ticked for it on Permissions"}
+                    : "opens nothing yet"}
                 </span>
               </Stack>
             </label>
           ))}
-          <span style={muted}>
-            Roles that follow an org role, or apply to everyone, are not listed — they decide their
-            own membership and cannot be handed out.
-          </span>
         </Stack>
 
         {/* 3 — check */}
@@ -238,14 +227,12 @@ function MemberForm({ member, grantable, register, onDone }) {
           <Card>
             {picked.size === 0 ? (
               <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
-                Nothing selected. Saving now records the person but grants them no access at all —
-                which is a valid thing to do, just rarely what is meant.
+                Nothing selected — saving records the person and grants nothing.
               </span>
             ) : summary.length === 0 ? (
               <span style={{ fontSize: "var(--text-sm)", color: "var(--warning)" }}>
-                The selected role{picked.size === 1 ? "" : "s"} open nothing yet. Tick something for
-                {" "}{picked.size === 1 ? "it" : "them"} on the <a href="/permissions">Permissions</a> first,
-                or this grant has no effect.
+                The selected role{picked.size === 1 ? "" : "s"} open nothing yet — tick something on{" "}
+                <a href="/permissions">Permissions</a>.
               </span>
             ) : (
               <Stack gap="2">
@@ -277,7 +264,7 @@ function MemberForm({ member, grantable, register, onDone }) {
                 defaultValue={member.expires ? String(member.expires).slice(0, 10) : ""} />
             </Stack>
           </Cluster>
-          <span style={muted}>Blank never expires. An expiry is kinder than a reminder to revoke.</span>
+          <span style={muted}>Blank never expires.</span>
         </Stack>
 
         <Cluster justify="flex-end" gap="3">
@@ -293,9 +280,7 @@ function MemberForm({ member, grantable, register, onDone }) {
 
 /** Live feedback on the ITS ID — the one field where a typo is silent and costly. */
 function IdFeedback({ its, valid, match }) {
-  if (!its.trim()) {
-    return <span style={muted}>Anyone with an ITS ID can be added, in the office register or not.</span>;
-  }
+  if (!its.trim()) return null;
   if (!valid) {
     return (
       <Cluster gap="2">
@@ -320,7 +305,7 @@ function IdFeedback({ its, valid, match }) {
     <Cluster gap="2">
       <Icon name="bell" size={13} style={{ color: "var(--warning)" }} />
       <span style={{ fontSize: "var(--text-xs)", color: "var(--warning)" }}>
-        Not in the office register. That is normal for most people — but check the number.
+        Not in the office register.
       </span>
     </Cluster>
   );

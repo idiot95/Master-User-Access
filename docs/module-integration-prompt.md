@@ -97,7 +97,7 @@ npm install
 Two environment variables, neither of them a secret of the console's:
 
 ```sh
-ACCESS_CONSOLE_URL=https://access.daeratulaqeeq.org
+ACCESS_CONSOLE_URL=https://useraccess.daeratulaqeeq.org
 ACCESS_MODULE=hoto        # so `module:` can be left off every call
 ```
 
@@ -225,7 +225,7 @@ use `self`.**
 The envelope arrives as the `da_access` cookie, set by the console on the fleet's
 parent domain. You never fetch it; the browser carries it. When it is missing or
 expired, `accessProxy` bounces the person through
-`https://access.daeratulaqeeq.org/authorize?redirect=<where they were going>` and
+`https://useraccess.daeratulaqeeq.org/authorize?redirect=<where they were going>` and
 they come back with a fresh one — no password, if their console session is still
 alive.
 

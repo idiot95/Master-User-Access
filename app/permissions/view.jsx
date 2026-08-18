@@ -104,7 +104,6 @@ export function PermissionsView({ modules, roles, permissions }) {
     <Stack gap="5">
       <PageHeader
         title="Permissions"
-        description="What each role may do in each module. An empty cell is a denial — there is no third state."
         meta={
           <>
             <span>{permissions.filter((p) => !p.orphaned).length} grants</span>
@@ -124,9 +123,8 @@ export function PermissionsView({ modules, roles, permissions }) {
 
       {undeclared.length > 0 && (
         <Callout tone="warning" variant="card" title={`${undeclared.length} modules have not declared themselves`}>
-          {undeclared.map((m) => m.name).join(", ")} — no manifest has been fetched, so there is
-          nothing to grant yet. Fetch it on <a href="/modules">Modules</a>. Drawing guessed
-          checkboxes here would imply controls that may not exist.
+          {undeclared.map((m) => m.name).join(", ")} — fetch the manifest on{" "}
+          <a href="/modules">Modules</a>.
         </Callout>
       )}
 
@@ -208,9 +206,7 @@ export function PermissionsView({ modules, roles, permissions }) {
       {(bulkPending || bulkState) && (
         <Callout tone={bulkState?.ok === false ? "danger" : "info"} variant="card"
           title={bulkPending ? "Applying…" : "Done"}>
-          {bulkPending
-            ? "Writing the change across every selected resource. Leave this page open until it finishes."
-            : bulkState?.message}
+          {bulkPending ? "Leave this page open until it finishes." : bulkState?.message}
         </Callout>
       )}
 
@@ -267,9 +263,6 @@ function BulkVerbs({ title, onPick, supported }) {
             </Cluster>
           </Cluster>
         ))}
-        <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
-          Applied only where a resource actually declares the action.
-        </span>
       </Stack>
     </Popover>
   );
@@ -369,9 +362,7 @@ function BulkConfirm({ bulk, onClose, run }) {
         : `${value ? "Grant" : "Remove"} ${verb} on ${changes} ${changes === 1 ? "resource" : "resources"}?`}
       description={nothing
         ? `Every resource in ${label} is already in that state.`
-        : `${value ? "Grants" : "Removes"} ${verb} for ${label}. `
-          + `${targets.length - changes > 0 ? `${targets.length - changes} already ${value ? "granted" : "clear"} and left alone. ` : ""}`
-          + `Resources with no ${verb} path are skipped entirely.`}
+        : `${value ? "Grants" : "Removes"} ${verb} for ${label}.`}
       /* ConfirmDialog defaults to danger, which puts a trash icon on the button.
          Right for removing access, plainly wrong for granting it. */
       tone={value ? "primary" : "danger"}
@@ -389,27 +380,11 @@ function BulkConfirm({ bulk, onClose, run }) {
 function CellEditor({ role, module: mod, byCell, onDone }) {
   return (
     <Stack gap="5">
-      <Card>
-        <Stack gap="2">
-          <Cluster gap="2">
-            <Tag>{role.membership}</Tag>
-            <Badge tone="neutral">{role.tier}</Badge>
-          </Cluster>
-          <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
-            {role.membership === "Everyone"
-              ? "Everyone who signs in holds this role. Grant it only what you would show any recognised person."
-              : role.membership === "Org Role"
-              ? `Held by whoever currently has “${role.orgRole}” in the office console. Nobody is listed by name.`
-              : "Held only by people named on the Members screen."}
-          </span>
-        </Stack>
-      </Card>
-
-      {mod.visibility === "Public" && (
-        <Callout tone="info" title="This module is Public">
-          Anyone recognised can already open it. Grants here add rights beyond viewing.
-        </Callout>
-      )}
+      <Cluster gap="2">
+        <Tag>{role.membership}</Tag>
+        <Badge tone="neutral">{role.tier}</Badge>
+        {mod.visibility === "Public" && <Badge tone="info">Public module</Badge>}
+      </Cluster>
 
       {mod.resources.map((res) => (
         <ResourceForm key={res.key} role={role} module={mod} resource={res}
@@ -459,12 +434,6 @@ function ResourceForm({ role, module: mod, resource, existing }) {
                 );
               })}
             </Cluster>
-            {resource.vced.length < 4 && (
-              <Hint>
-                This module offers only {resource.vced.join(", ")} on this resource — the rest are
-                greyed because it has no code path for them.
-              </Hint>
-            )}
           </Stack>
 
           {resource.capabilities.length > 0 && (
@@ -474,10 +443,7 @@ function ResourceForm({ role, module: mod, resource, existing }) {
                 rows={Math.min(resource.capabilities.length + 1, 5)}
                 defaultValue={(existing?.capabilities ?? []).join("\n")}
                 placeholder={resource.capabilities.map((c) => c.key).join("\n")} />
-              <Hint>
-                One per line — these are the module's non-CRUD buttons.
-                Offered: {resource.capabilities.map((c) => c.key).join(", ")}
-              </Hint>
+              <Hint>Offered: {resource.capabilities.map((c) => c.key).join(", ")}</Hint>
             </Stack>
           )}
 
@@ -486,16 +452,12 @@ function ResourceForm({ role, module: mod, resource, existing }) {
             <Select id={`rule-${resource.key}`} name="scopeRule" value={rule}
               onChange={(e) => setRule(e.target.value)}
               options={[
-                { value: "none", label: "none — opens, but no scoped rows" },
-                { value: "own", label: "own — only rows matching their granted scopes" },
-                { value: "all", label: "all — everything in the module" },
+                { value: "none", label: "none" },
+                { value: "own", label: "own" },
+                { value: "all", label: "all" },
               ]} />
             {rule === "own" && scopeless && (
-              <Callout tone="warning" title="This resource has no scopes to narrow by">
-                {mod.name} declares no scope dimensions for {resource.key}, so “own” behaves exactly
-                like “all”. Pick <strong>all</strong> if that is what you mean, so the row does not
-                read as a restriction that is not there.
-              </Callout>
+              <Callout tone="warning" title={`${resource.key} has no scope dimensions — “own” behaves as “all”`} />
             )}
           </Stack>
 
@@ -518,7 +480,7 @@ function Legend() {
       <Cluster gap="2">
         <span style={{ ...swatch, borderStyle: "solid", borderColor: "var(--interactive-solid)",
           background: "var(--interactive-subtle)" }} />
-        <span><strong style={{ fontFamily: "var(--font-mono)" }}>V C E D</strong> — click a letter to grant or clear it across the module</span>
+        <span><strong style={{ fontFamily: "var(--font-mono)" }}>V C E D</strong> — click to grant or clear</span>
       </Cluster>
       <Cluster gap="2">
         <span style={{ ...swatch, borderStyle: "dashed", borderColor: "var(--border)" }} />
@@ -528,7 +490,6 @@ function Legend() {
         <Icon name="lock" size={12} />
         <span>not declared</span>
       </Cluster>
-      <span><strong>all ▾</strong> on a row or column grants across it</span>
     </Cluster>
   );
 }

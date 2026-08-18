@@ -8,12 +8,9 @@ import {
 import { saveAccessRole } from "../actions.js";
 
 const MEMBERSHIP = [
-  { value: "Everyone", label: "Everyone who signs in",
-    hint: "Anyone who passes ITS One Login holds this. Stores no rows — this is how 10,000 people get a baseline at no cost. Grant it only what any recognised person may see." },
-  { value: "Org Role", label: "Whoever holds an org role",
-    hint: "Membership follows the office console. When someone is given or loses that role there, this follows automatically — nobody is listed here by name." },
-  { value: "Explicit", label: "People I name",
-    hint: "You add people to it by ITS ID on the Members screen. The only kind that stores a person, and the one to use for roles the org chart does not have." },
+  { value: "Everyone", label: "Everyone who signs in" },
+  { value: "Org Role", label: "Whoever holds an org role" },
+  { value: "Explicit", label: "People I name" },
 ];
 
 const TIERS = ["recognised", "member", "steward", "admin"];
@@ -46,7 +43,6 @@ export function RolesView({ roles, orgRoles, allRoles }) {
     <Stack gap="5">
       <PageHeader
         title="Roles"
-        description="A role is a bundle of rights. How someone comes to hold it is the role's own business — by rule, by org role, or by name."
         meta={<><span>{roles.length} roles</span>
           <span>{roles.filter((r) => r.membership !== "Explicit").length} that store no rows</span></>}
         actions={<Button icon="plus" onClick={() => setEditing({})}>New role</Button>}
@@ -92,7 +88,7 @@ export function RolesView({ roles, orgRoles, allRoles }) {
                   <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
                     {r.opens.length
                       ? <>Opens {r.opens.map((o) => `${o.module} (${o.verbs.join(", ")})`).join(" · ")}</>
-                      : <em>Opens nothing yet — nothing is ticked for it on Permissions.</em>}
+                      : <em>Opens nothing yet</em>}
                   </span>
                 </Stack>
 
@@ -126,7 +122,6 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
   const [key, setKey] = useState(role.key ?? "");
   const [touchedKey, setTouchedKey] = useState(!!role.key);
 
-  const chosen = MEMBERSHIP.find((m) => m.value === membership);
   const inheritable = allRoles.filter((r) => r.id !== role.id);
 
   // The key is derived from the name until someone edits it. It is what every
@@ -156,9 +151,7 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
             <Label htmlFor="key">Key</Label>
             <Input id="key" name="key" value={key} readOnly={!!role.id}
               onChange={(e) => { setTouchedKey(true); setKey(e.target.value); }} required />
-            <Hint>{role.id
-              ? "Fixed — every grant points at this."
-              : "Used internally. Derived from the name; edit it now if you want something else, because it cannot change later."}</Hint>
+            <Hint>Cannot change once the role exists.</Hint>
           </Stack>
           <Stack gap="2">
             <Label htmlFor="nameArabic">Name (Arabic)</Label>
@@ -176,15 +169,12 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
               borderColor: membership === m.value ? "var(--interactive-solid)" : "var(--border)",
               background: membership === m.value ? "var(--interactive-subtle)" : "transparent",
             }}>
-              <Stack gap="2">
-                <Cluster gap="3" align="center">
-                  <input type="radio" name="membership" value={m.value}
-                    checked={membership === m.value}
-                    onChange={() => setMembership(m.value)} />
-                  <strong style={{ fontSize: "var(--text-sm)" }}>{m.label}</strong>
-                </Cluster>
-                <span style={{ ...muted, paddingInlineStart: "var(--space-7)" }}>{m.hint}</span>
-              </Stack>
+              <Cluster gap="3" align="center">
+                <input type="radio" name="membership" value={m.value}
+                  checked={membership === m.value}
+                  onChange={() => setMembership(m.value)} />
+                <strong style={{ fontSize: "var(--text-sm)" }}>{m.label}</strong>
+              </Cluster>
             </label>
           ))}
 
@@ -199,18 +189,11 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
                     label: `${o.name}${o.legacy ? " (retired)" : ""} — ${o.holders} hold it`,
                   })),
                 ]} />
-              <Hint>
-                Read from the office console. Change who holds it there, and this role follows on
-                their next sign-in.
-              </Hint>
             </Stack>
           )}
 
           {membership === "Everyone" && (
-            <Callout tone="warning" title="This reaches everyone who can sign in">
-              Thousands of people, not just the office. Grant it only modules marked Public, or
-              things you would put on a noticeboard.
-            </Callout>
+            <Callout tone="warning" title="This reaches everyone who can sign in" />
           )}
         </Stack>
 
@@ -221,12 +204,10 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
               <Label htmlFor="tier">Tier</Label>
               <Select id="tier" name="tier" defaultValue={role.tier ?? "member"}
                 options={TIERS.map((t) => ({ value: t, label: t }))} />
-              <Hint>A label for how far this reaches. It grants nothing on its own.</Hint>
             </Stack>
             <Stack gap="2" style={{ flex: 1 }}>
               <Label htmlFor="level">Level</Label>
               <Input id="level" name="level" type="number" defaultValue={role.level ?? 0} />
-              <Hint>Sorting only. Never implies inheritance.</Hint>
             </Stack>
           </Cluster>
 
@@ -235,33 +216,13 @@ function RoleForm({ role, orgRoles, allRoles, onDone }) {
             <Select id="inheritsFrom" name="inheritsFrom" defaultValue={role.inheritsFrom ?? ""}
               options={[{ value: "", label: "— nothing —" },
                 ...inheritable.map((r) => ({ value: r.id, label: r.name }))]} />
-            <Hint>
-              Explicit and one-directional. A Section Head does not automatically get what a Section
-              Team has unless you say so here — implied inheritance is how a permission system
-              becomes impossible to explain.
-            </Hint>
           </Stack>
 
           <Stack gap="2">
             <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" name="notes" rows={2} defaultValue={role.notes ?? ""}
-              placeholder="Why this role exists — read by whoever inherits it from you." />
+            <Textarea id="notes" name="notes" rows={2} defaultValue={role.notes ?? ""} />
           </Stack>
         </Stack>
-
-        <Card>
-          <Stack gap="2">
-            <strong style={{ fontSize: "var(--text-sm)" }}>In short</strong>
-            <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
-              <strong>{name || "This role"}</strong> — {chosen?.hint}
-            </span>
-            {!role.id && (
-              <span style={muted}>
-                It opens nothing until you tick something for it on Permissions.
-              </span>
-            )}
-          </Stack>
-        </Card>
 
         <Cluster justify="flex-end" gap="3">
           <Button variant="secondary" onClick={onDone}>Cancel</Button>
