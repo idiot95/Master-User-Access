@@ -10,7 +10,7 @@ import { isAllowedRedirect, safeRedirect } from "../lib/redirect.js";
  */
 
 const fleet = {
-  origin: "https://access.daeratulaqeeq.org",
+  origin: "https://useraccess.daeratulaqeeq.org",
   cookieDomain: ".daeratulaqeeq.org",
   moduleUrls: ["https://hoto.daeratulaqeeq.org", "http://127.0.0.1:3400"],
 };
@@ -24,7 +24,7 @@ test("the parent domain itself is allowed", () => {
 });
 
 test("back to the console is allowed", () => {
-  assert.equal(isAllowedRedirect("https://access.daeratulaqeeq.org/modules", fleet), true);
+  assert.equal(isAllowedRedirect("https://useraccess.daeratulaqeeq.org/modules", fleet), true);
   assert.equal(isAllowedRedirect("/modules", fleet), true);
 });
 
@@ -50,7 +50,7 @@ test("a credentialled URL pointing elsewhere is refused", () => {
   // Reads as the fleet host to a person skimming the address bar; the browser
   // sends them to evil.example.
   assert.equal(
-    isAllowedRedirect("https://access.daeratulaqeeq.org@evil.example/", fleet), false);
+    isAllowedRedirect("https://useraccess.daeratulaqeeq.org@evil.example/", fleet), false);
 });
 
 test("a scheme that is not the web is refused", () => {

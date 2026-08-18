@@ -23,10 +23,11 @@ they are missing.
 | `TEABLE_OFFICE_URL` | `https://app.teable.io` | |
 | `TEABLE_OFFICE_BASE` | `bseHKVLPadS6wPhefR8` | _DA Master |
 | `TEABLE_OFFICE_TOKEN` | a **read-only** token on that base | never `record|create` or `record|update` |
-| `AUTH_SECRET` | `openssl rand -base64 48` | signs the 12-hour console session |
+| `DA_CORE_URL` | `https://core.daeratulaqeeq.org` | where sign-in happens. Set it and this app runs no auth of its own |
+| `AUTH_SECRET` | `openssl rand -base64 48` | signs the interim local session. Unneeded once `DA_CORE_URL` is set |
 | `ACCESS_PRIVATE_KEY` | from `npm run keys` | signs envelopes; this app and nowhere else |
 | `ACCESS_PUBLIC_KEY` | the other half | served at `/.well-known/jwks.json` |
-| `ACCESS_ISSUER` | `https://access.daeratulaqeeq.org` | the `iss` modules check |
+| `ACCESS_ISSUER` | `https://useraccess.daeratulaqeeq.org` | the `iss` modules check, and the return address given to core |
 | `COOKIE_DOMAIN` | `.daeratulaqeeq.org` | so every module reads the same cookie |
 
 That is the whole list. Three that must **not** be set:
@@ -35,8 +36,9 @@ That is the whole list. Three that must **not** be set:
   twice, also requiring `NODE_ENV` to not be production, but it has no business
   on a deployment.
 - **`TRUST_FORWARDED_ITS`** stops `proxy.js` stripping the inbound `x-its-id`
-  header. Until ITS One Login actually terminates identity in front of this app,
-  that header is whatever the browser typed.
+  header. `DA_CORE_URL` is not a reason to set it — core's token is verified
+  here, in code. Without a gateway actually terminating identity in front of
+  this app, that header is whatever the browser typed.
 - **`ACCESS_KEY_ID`** is computed from the key itself. Setting it by hand is a
   way for the `kid` in a token to stop naming the key that signed it.
 
@@ -91,10 +93,10 @@ when convenient; it is not a deployment blocker.
 
 ## 4. Domain
 
-Put the deployment on a subdomain of the fleet's parent domain
-(`access.daeratulaqeeq.org`). The session cookie is set on `.daeratulaqeeq.org`
-so every module can read it; on a `*.vercel.app` host it cannot be shared, and
-each module would need its own redirect flow.
+`useraccess.daeratulaqeeq.org` — a subdomain of the fleet's parent domain, so
+the envelope cookie on `.daeratulaqeeq.org` reaches every module, and core's
+identity cookie reaches this one. On a `*.vercel.app` host neither can be
+shared, and every module would need its own redirect flow.
 
 ## 5. After the first deploy
 
@@ -107,18 +109,19 @@ each module would need its own redirect flow.
 ## The envelope, once it is deployed
 
 ```
-person opens hoto.daeratulaqeeq.org
+person opens mawaqeet.daeratulaqeeq.org
   │
-  ├─ no envelope cookie ──▶ access.daeratulaqeeq.org/authorize?redirect=…
+  ├─ no envelope cookie ──▶ useraccess.daeratulaqeeq.org/authorize?redirect=…
   │                           │
-  │                           ├─ no console session ──▶ /login, then back here
-  │                           └─ session ──▶ resolve, sign RS256, set cookie,
-  │                                          303 back to where they were going
+  │                           ├─ no identity ──▶ core.daeratulaqeeq.org/login,
+  │                           │                  then back here
+  │                           └─ identity ──▶ resolve, sign RS256, set cookie,
+  │                                           303 back to where they were going
   │
   └─ envelope ──▶ verified locally against JWKS. No call to this app.
 ```
 
-Two clocks, deliberately: the session is 12 hours, the envelope is 15 minutes.
+Two clocks, deliberately: identity is core's to expire, the envelope is 15 minutes.
 Fifteen minutes is the bound on how stale a module's view of someone's rights
 can be — tick a box on the matrix and it lands everywhere within that, with no
 deploy anywhere. Signing out clears both, or a person would keep their rights
@@ -127,7 +130,7 @@ across the fleet for a quarter of an hour after leaving.
 **Check after the first deploy:**
 
 ```sh
-curl -s https://access.daeratulaqeeq.org/.well-known/jwks.json
+curl -s https://useraccess.daeratulaqeeq.org/.well-known/jwks.json
 ```
 
 One key, `"alg":"RS256"`, `"use":"sig"`, and no `d` field. If it returns
@@ -144,11 +147,17 @@ touching the network.
 
 ## What is not wired yet
 
-**ITS One Login.** `lib/auth.js` signs people in against the `Auth Store` table
-the directory already writes — four people, salted SHA-256, no rate limiting. It
-is named a stopgap in the file itself. When One Login lands, that file and the
-table both go, `TRUST_FORWARDED_ITS=1` hands identity to the gateway, and
-nothing downstream of `lib/session.js` changes.
+**The core DA module.** The seam is built and tested — `lib/upstream.js`
+verifies core's token, `lib/identity.js` chooses between it and the local
+session, and `proxy.js` sends anyone unrecognised to core rather than to
+`/login`. Nothing downstream of `lib/session.js` changes either way.
 
-Until then the console is reachable by exactly those four accounts, and every
-envelope the fleet honours is minted behind that one door.
+What is not set is `DA_CORE_URL`, because core is not serving yet. Until it is,
+the console falls back to `lib/auth.js` and the `Auth Store` table — four
+people, salted SHA-256, no rate limiting, named a stopgap in the file itself.
+Set the one variable and that path closes: `/login` redirects to core and
+`POST /api/auth/login` answers 410, so it is shut at the route and not merely
+hidden from the screen.
+
+Core needs to serve `/.well-known/jwks.json` and set its cookie on
+`.daeratulaqeeq.org` for this to work.

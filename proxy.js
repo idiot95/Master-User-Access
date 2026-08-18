@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readSession, SESSION_COOKIE } from "./lib/auth.js";
+import { readIdentity } from "./lib/identity.js";
+import { coreConfigured, coreSignIn, selfOrigin } from "./lib/upstream.js";
 
 /**
  * Nothing is reachable without a session, and identity is decided here.
@@ -9,21 +10,22 @@ import { readSession, SESSION_COOKIE } from "./lib/auth.js";
  * Two things happen on every request:
  *
  *   1. The inbound `x-its-*` headers are dropped. `lib/session.js` treats them
- *      as who you are, and until ITS One Login puts a gateway in front of this
+ *      as who you are, and until something terminates identity in front of this
  *      app there is nothing between the browser and that header — anyone with
  *      a console session could otherwise send `x-its-id: <someone else>` and
  *      read that person's rights. Stripping them here is what makes the comment
  *      in session.js true rather than aspirational.
  *
- *   2. The verified session sets them again. One identity path: the cookie is
+ *   2. The verified identity sets them again. One identity path: a cookie is
  *      the source, the header is how it travels inward.
  *
- * The allow-list is short and explicit rather than a pattern, because the
- * failure mode of a too-generous rule here is the whole console being open —
- * which is exactly the state this replaces.
+ * Where that cookie comes from is `lib/identity.js`' business. With
+ * `DA_CORE_URL` set it is a token the core DA module signed, and this app has
+ * no sign-in of its own; without it, the interim local session still applies.
+ * Neither case changes anything below the proxy.
  *
- * Verification is a local signature check, no network: proxy runs on every
- * request, and a round-trip here would tax every page.
+ * The allow-list is short and explicit rather than a pattern, because the
+ * failure mode of a too-generous rule here is the whole console being open.
  */
 const PUBLIC = new Set([
   "/login",
@@ -40,10 +42,9 @@ const PUBLIC = new Set([
 /**
  * Honour an inbound `x-its-id` instead of stripping it.
  *
- * Off unless explicitly set, and it must stay off until something actually
- * terminates identity in front of this app. The day ITS One Login lands, the
- * gateway sets the header, this is set to 1, and the cookie path below stops
- * being the only way in.
+ * Off unless explicitly set, and it must stay off unless a gateway terminates
+ * identity in front of this app. Core signing a cookie is not that gateway —
+ * that path is verified here, in code, and needs no trusted header.
  */
 const TRUST_FORWARDED_ITS = process.env.TRUST_FORWARDED_ITS === "1";
 
@@ -64,11 +65,7 @@ export async function proxy(request) {
     || pathname === "/favicon.ico"
   ) return forward();
 
-  const session = await readSession(request.cookies.get(SESSION_COOKIE)?.value)
-    // A missing or malformed AUTH_SECRET throws. Treat that as "not signed in"
-    // rather than a 500: the login page then says what is wrong, instead of the
-    // whole site failing with a digest number.
-    .catch(() => null);
+  const session = await readIdentity((name) => request.cookies.get(name)?.value);
 
   if (PUBLIC.has(pathname)) {
     // Already signed in? Do not sit on the login form. The JWKS route is public
@@ -78,19 +75,34 @@ export async function proxy(request) {
       : forward();
   }
 
-  if (!session) {
-    const to = new URL("/login", request.url);
-    // Come back to where they were aiming, so a shared link — and a module
-    // bouncing someone through /authorize — survives the detour.
-    if (pathname !== "/") to.searchParams.set("next", pathname + request.nextUrl.search);
-    return NextResponse.redirect(to);
-  }
+  if (!session) return NextResponse.redirect(signInFor(request, pathname));
 
   // Only the ITS ID travels inward. The display name is read from the cookie by
   // the layout, so there is no reason to put a person's name — which may not be
   // Latin-1, and headers are — into a header at all.
   if (!TRUST_FORWARDED_ITS) headers.set("x-its-id", session.itsId);
   return forward();
+}
+
+/**
+ * Where an unauthenticated request is sent, and how it finds its way back.
+ *
+ * Core is off-origin, so the return address has to be absolute and has to be
+ * this console's public origin rather than the request's — see `selfOrigin`.
+ */
+function signInFor(request, pathname) {
+  const here = pathname + request.nextUrl.search;
+
+  if (coreConfigured()) {
+    const origin = selfOrigin(request.url);
+    return coreSignIn(origin ? `${origin}${here}` : here);
+  }
+
+  const to = new URL("/login", request.url);
+  // Come back to where they were aiming, so a shared link — and a module
+  // bouncing someone through /authorize — survives the detour.
+  if (pathname !== "/") to.searchParams.set("next", here);
+  return to;
 }
 
 export const config = {

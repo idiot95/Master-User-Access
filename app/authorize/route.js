@@ -4,6 +4,7 @@ import { loadVocabularies } from "../../lib/vocab.js";
 import { currentClaims } from "../../lib/session.js";
 import { signEnvelope, envelopeCookieOptions, fitsInCookie, sizeOf, COOKIE_LIMIT } from "../../lib/envelope.js";
 import { safeRedirect, isAllowedRedirect } from "../../lib/redirect.js";
+import { coreUrl } from "../../lib/upstream.js";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,11 @@ export async function GET(request) {
   const opts = {
     origin: url.origin,
     cookieDomain: process.env.COOKIE_DOMAIN,
-    moduleUrls: state.modules.map((m) => m.url).filter(Boolean),
+    // Core is a legitimate destination whether or not anyone has registered it
+    // as a module — it is where people arrive from, so it is where they go back
+    // to. On the shared parent domain the rule below already covers it; in
+    // development, where there is no cookie domain, this is what makes it work.
+    moduleUrls: [...state.modules.map((m) => m.url), coreUrl()].filter(Boolean),
   };
   const dest = safeRedirect(target, opts);
 

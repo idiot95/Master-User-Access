@@ -4,7 +4,7 @@ import "@al-rayhaanat/system/tokens.css";
 import { cookies } from "next/headers";
 import { Chrome } from "./chrome.jsx";
 import { target } from "../lib/teable.js";
-import { readSession, SESSION_COOKIE } from "../lib/auth.js";
+import { readIdentity } from "../lib/identity.js";
 import { consoleAccess, viewable } from "../lib/console.js";
 
 export const metadata = {
@@ -18,9 +18,10 @@ export const metadata = {
  */
 export default async function RootLayout({ children }) {
   const jar = await cookies();
-  // A missing AUTH_SECRET throws inside readSession. The login page explains
-  // that; the layout must not take the whole site down over it.
-  const session = await readSession(jar.get(SESSION_COOKIE)?.value).catch(() => null);
+  // Core's token when core is configured, the interim local session when not.
+  // Either way a failure to read one is "not signed in", never a 500 — the
+  // layout must not take the whole site down over a missing secret.
+  const session = await readIdentity((name) => jar.get(name)?.value);
 
   // Which screens to list. Resolving it here costs one cached read and saves
   // every page offering links that will refuse the person who clicks them.

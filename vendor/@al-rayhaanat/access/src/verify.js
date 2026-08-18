@@ -20,7 +20,7 @@ export const VCED = ["view", "create", "edit", "delete"];
 const SHORT = { view: "v", create: "c", edit: "e", delete: "d" };
 
 export const consoleUrl = () =>
-  (process.env.ACCESS_CONSOLE_URL || "https://access.daeratulaqeeq.org").replace(/\/+$/, "");
+  (process.env.ACCESS_CONSOLE_URL || "https://useraccess.daeratulaqeeq.org").replace(/\/+$/, "");
 
 export const issuer = () => process.env.ACCESS_ISSUER || consoleUrl();
 
