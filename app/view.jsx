@@ -22,11 +22,9 @@ export function OverviewView({ findings, counts, empty }) {
   if (empty) {
     return (
       <Stack gap="6">
-        <PageHeader title="User Access"
-          description="Who may open which module, and what they may do there." />
+        <PageHeader title="User Access" />
         <EmptyState
           title="Nothing is registered yet"
-          description="Register a module, create the roles that may open it, then tick what each role can do. Nothing is granted until you tick it."
           action={<Button icon="plus" onClick={() => location.assign("/modules")}>Register a module</Button>}
         />
       </Stack>
@@ -40,19 +38,11 @@ export function OverviewView({ findings, counts, empty }) {
     ...present.map((s) => ({ id: s, label: `${SEVERITY[s].label} (${bySeverity(s).length})` })),
   ];
   const shown = filter === "all" ? findings : bySeverity(filter);
-  const worst = findings[0]?.severity;
 
   return (
     <Stack gap="5">
       <PageHeader
         title="User Access"
-        description={
-          findings.length === 0
-            ? "Nothing needs attention. Access is configured the way it was left."
-            : worst === "risk"
-            ? "Something here probably exposes more than it should."
-            : "A few things are not doing what they appear to."
-        }
         meta={
           <>
             <span>{counts.declared} of {counts.modules} live modules declared</span>
@@ -67,13 +57,7 @@ export function OverviewView({ findings, counts, empty }) {
         <Card>
           <Cluster gap="4" align="center">
             <Icon name="check" size={20} style={{ color: "var(--success)" }} />
-            <Stack gap="1">
-              <strong>Nothing to report</strong>
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
-                No role reaches further than it should, every module has declared itself, and
-                nothing is about to expire. This page fills up when that stops being true.
-              </span>
-            </Stack>
+            <strong>Nothing to report</strong>
           </Cluster>
         </Card>
       ) : (

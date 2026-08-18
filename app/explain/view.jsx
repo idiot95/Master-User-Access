@@ -28,10 +28,7 @@ export function ExplainView({ modules, result, itsId, moduleKey }) {
 
   return (
     <Stack gap="6">
-      <PageHeader
-        title="Explain"
-        description="Trace exactly where a person's access comes from — which rule matched, which role granted, which override changed it, and what survives."
-      />
+      <PageHeader title="Explain" />
 
       <Card>
         <Cluster gap="4" align="flex-end">
@@ -52,8 +49,7 @@ export function ExplainView({ modules, result, itsId, moduleKey }) {
       </Card>
 
       {!result ? (
-        <EmptyState title="Name someone"
-          description="Any ITS ID — provisioned or not. Most people are served by rule and have no record here at all, which this screen will show you plainly." />
+        <EmptyState title="Name someone" />
       ) : (
         <Result result={result} />
       )}
@@ -98,9 +94,7 @@ function Result({ result }) {
       <Stack gap="3">
         <h2 style={sub}>What survives</h2>
         {netEntries.length === 0 ? (
-          <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
-            Nothing. An empty result is a valid, expected state — not an error.
-          </span>
+          <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>Nothing.</span>
         ) : (
           netEntries.map(([moduleKey, entry]) => (
             <Card key={moduleKey}>

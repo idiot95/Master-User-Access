@@ -59,17 +59,11 @@ export function LoginView({ next, secretMissing }) {
                 fontSize: "var(--text-2xl)", fontWeight: "var(--weight-regular)" }}>
                 User Access
               </h1>
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)",
-                textAlign: "center" }}>
-                Who may open which module, and what they may do there.
-              </span>
             </Stack>
 
             {secretMissing && (
               <Callout tone="danger" variant="card" title="AUTH_SECRET is not set">
-                Signing in cannot work until it is. Generate one with
-                {" "}<code>openssl rand -base64 48</code> and add it to the environment,
-                then redeploy.
+                <code>openssl rand -base64 48</code>, add it to the environment, redeploy.
               </Callout>
             )}
 
@@ -105,11 +99,6 @@ export function LoginView({ next, secretMissing }) {
               </form>
             </Card>
 
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)",
-              textAlign: "center" }}>
-              Uses the same ITS ID and password as the directory. This is an interim gate —
-              ITS One Login replaces it.
-            </span>
           </Stack>
         </div>
       </div>

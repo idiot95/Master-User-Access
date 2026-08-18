@@ -23,9 +23,7 @@ export function NoAccess({ resource, action = "view", its }) {
           {its ? <> — and ITS {its} does not have it.</> : "."}
         </span>
         <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
-          Whoever administers access can grant it on <strong>Permissions</strong>,
-          against the access role you hold. A Platform Admin holds every screen here
-          without needing a row.
+          It is granted on <strong>Permissions</strong>, against the access role you hold.
         </span>
       </Stack>
     </Callout>
