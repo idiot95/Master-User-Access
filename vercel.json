@@ -1,4 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://www.daeratulaqeeq.org/api/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/.well-known/:path*",
+      "destination": "https://www.daeratulaqeeq.org/.well-known/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://www.daeratulaqeeq.org/",
+      "permanent": true
+    }
+  ]
 }
