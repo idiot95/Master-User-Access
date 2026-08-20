@@ -3,6 +3,11 @@
   "framework": "nextjs",
   "redirects": [
     {
+      "source": "/",
+      "destination": "https://www.daeratulaqeeq.org/",
+      "permanent": true
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://www.daeratulaqeeq.org/api/:path*",
       "permanent": true
